@@ -1,0 +1,46 @@
+.bold-40 {
+    @include font(40px, 600, normal, 52px, $font-fredoka);
+    @include max-media($sm) {
+        font-size: 32px;
+        line-height: 38px;
+    }
+}
+.std-16 {
+    @include font(16px, normal, normal, 20px, $font-fredoka);
+}
+.bold-48 {
+    @include font(48px, 600, normal, 56px, $font-fredoka);
+    @include max-media($lg) {
+        font-size: 40px;
+        line-height: 50px;
+    }
+    @include max-media($md) {
+        font-size: 36px;
+        line-height: 40px;
+    }
+    @include max-media($sm) {
+        font-size: 32px;
+        line-height: 38px;
+    }
+}
+.bold-28 {
+    @include font(28px, 600, normal, 34px, $font-fredoka);
+    @include max-media($sm) {
+        font-size: 24px;
+        line-height: 28px;
+    }
+}
+.bold-30 {
+    @include font(30px, 600, normal, 36px, $font-fredoka);
+    @include max-media($sm) {
+        font-size: 28px;
+        line-height: 34px;
+    }
+}
+.std-20 {
+    @include font(20px, normal, normal, 26px, $font-fredoka);
+    @include max-media($sm) {
+        font-size: 16px;
+        line-height: 20px;
+    }
+}

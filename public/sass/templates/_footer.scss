@@ -1,0 +1,16 @@
+footer {
+    height: 80px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: $dark;
+
+    .copyright {
+        text-align: center;
+        p {
+            @extend .std-20;
+            font-size: 18px;
+            color: #fff;
+        }
+    }
+}

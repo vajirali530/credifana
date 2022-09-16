@@ -1,0 +1,264 @@
+h1, h2, h3, h4, h5, h6, p {
+    margin: 0;
+}
+
+.std-btn {
+    height: 60px;
+    border-radius: 6px;
+    border-color: $dark;
+    color: $dark;
+    text-transform: uppercase;
+    @extend .std-20;
+    padding: 16px 20px;
+    outline: none;
+    box-shadow: none !important;
+    &:hover {
+        color: #fff;
+        background-color: $dark;
+        border-color: $dark;
+    }
+    @include max-media($md) {
+        height: 50px;
+        padding: 10px 20px;
+    }
+    @include max-media($sm) {
+        padding: 9px 20px;
+        height: 40px;
+    }
+}
+
+.std-btn-full {
+    @extend .std-btn;
+    background-color: $primary;
+    color: #fff;
+    border-color: $primary;
+    &:hover {
+        background-color: transparent;
+        color: $primary;
+        border-color: $primary;
+        
+    }
+}
+
+section {
+    position: relative;
+    padding: 70px 0px;
+    z-index: 1;
+    background-color: #f1f1f1;
+    
+    @include max-media($md) {
+        padding: 50px 0px;
+    }
+    @include max-media($md) {
+        padding: 40px 0px;
+    }
+
+    .heading {
+        margin-bottom: 45px;
+        @include max-media($md) {
+            margin-bottom: 30px;
+        }
+        @include max-media($md) {
+            margin-bottom: 15px;
+        }
+        h2 {
+            @extend .bold-30;
+        }
+        h3 {
+            @extend .bold-28;
+        }
+    }
+    .content {
+        p {
+            @extend .std-20;
+        }
+    }
+}
+
+span {
+    &.line-break {
+        @include min-media($lg) {
+            display: block;
+        }
+    }
+}
+
+
+
+@keyframes typewriter {
+    20% {
+        left: 100%;
+    }
+    90% {
+        left: 100%;
+    }
+  }
+  
+@keyframes blink {
+    // to {
+    //     border-color: transparent;
+    // }
+    to {
+        background: transparent;
+    }
+}
+  
+@keyframes fadeInUp {
+    to {
+      opacity: 1;
+      transform: translate(0);
+    }
+}
+
+// @keyframes typingGreen {
+//     0% {
+//         content: "";
+//     }
+//     4% {
+//         content: "f";
+//     }
+//     8% {
+//         content: "fa";
+//     }
+//     16% {
+//         content: "fav";
+//     }
+//     20% {
+//         content: "favo";
+//     }
+//     24% {
+//         content: "favor";
+//     }
+//     28% {
+//         content: "favori";
+//     }
+//     32% {
+//         content: "favorit";
+//     }
+//     36% {
+//         content: "favorite";
+//     }
+//     92% {
+//         content: "favorite";
+//     }
+//     93% {
+//         content: "favorit";
+//     }
+//     94% {
+//         content: "favori";
+//     }
+//     95% {
+//         content: "favor";
+//     }
+//     96% {
+//         content: "favo";
+//     }
+//     97% {
+//         content: "fav";
+//     }
+//     98% {
+//         content: "fa";
+//     }
+//     99% {
+//         content: "f";
+//     }
+//     100% {
+//         content: "";
+//     }
+// }
+
+// @keyframes typingOrange {
+//     0% {
+//         content: "";
+//     }
+//     4% {
+//         content: "i";
+//     }
+//     8% {
+//         content: "in";
+//     }
+//     16% {
+//         content: "int";
+//     }
+//     20% {
+//         content: "inte";
+//     }
+//     24% {
+//         content: "inter";
+//     }
+//     28% {
+//         content: "intere";
+//     }
+//     32% {
+//         content: "interes";
+//     }
+//     36% {
+//         content: "interest";
+//     }
+//     92% {
+//         content: "interest";
+//     }
+//     93% {
+//         content: "interes";
+//     }
+//     94% {
+//         content: "intere";
+//     }
+//     95% {
+//         content: "inter";
+//     }
+//     96% {
+//         content: "inte";
+//     }
+//     97% {
+//         content: "int";
+//     }
+//     98% {
+//         content: "in";
+//     }
+//     99% {
+//         content: "i";
+//     }
+//     100% {
+//         content: "";
+//     }
+// }
+
+// @keyframes typingPurple {
+//     0% {
+//         content: "";
+//     }
+//     7% {
+//         content: "R";
+//     }
+//     14% {
+//         content: "Ra";
+//     }
+//     21% {
+//         content: "Rat";
+//     }
+//     28% {
+//         content: "Rate";
+//     }
+//     36% {
+//         content: "Rates";
+//     }
+//     92% {
+//         content: "Rates";
+//     }
+//     93% {
+//         content: "Rate";
+//     }
+//     94% {
+//         content: "Rat";
+//     }
+//     96% {
+//         content: "Ra";
+//     }
+//     98% {
+//         content: "R";
+//     }
+//     100% {
+//         content: "";
+//     }
+// }

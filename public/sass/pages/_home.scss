@@ -1,0 +1,265 @@
+section {
+    &.hero-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 35px 0px;
+        z-index: 2;
+        .hero-wrapper {
+            .left-block {
+                margin: 30px 0px;
+                @include max-media($sm) {
+                    margin: 10px 0px;
+                }
+                .hero-content {
+                    h2 {
+                        @extend .bold-48;
+                        font-weight: normal;
+                        color: $dark;
+                        .bold {
+                            font-weight: 600;
+                            @include min-media($md) {
+                                &.special-text {
+                                    position: relative;
+                                    // color: transparent;
+                                    &::before, &::after {
+                                    // &::before {
+                                        position: absolute;
+                                        content: "";
+                                        top: 0;
+                                        right: 0;
+                                        bottom: 0;
+                                        left: 0;
+                                        // padding-right: 3px;
+                                        // border-right: 3px solid black;
+                                    }
+                                    &::before {
+                                        background: #f1f1f1;
+                                        animation: typewriter 5s steps(8) infinite forwards;
+                                    }
+                                    &::after {
+                                        width: 3.5px;
+                                        background: black;
+                                        // animation: blink 750ms steps(8) infinite;
+                                        animation: typewriter 5s steps(8) infinite forwards, blink 750ms steps(8) infinite;
+                                    }
+                                }
+                            }
+                            &.green {
+                                color: $green;
+                                // &::before {
+                                //     animation: typingGreen 5s infinite forwards, blink 750ms steps(8) infinite;
+                                // }
+                            }
+                            &.orange {
+                                color: $orange;
+                                // &::before {
+                                //     animation: typingOrange 5s infinite forwards, blink 750ms steps(8) infinite;
+                                // }
+                            }
+                            &.primary {
+                                color: $purple;
+                                // &::before {
+                                //     animation: typingPurple 5s infinite forwards, blink 750ms steps(8) infinite;
+                                // }
+                            }
+                        }
+                    }
+                    .hero-btn {
+                        margin-top: 35px;
+                    }
+                }
+            }
+            .right-block {
+                img {
+                    max-width: 100%;
+                    height: auto;
+                }
+            }
+        }
+    }
+
+    &.intro-section {
+        transform-style: inherit;
+        height: 100%;
+        width: 100%;
+        background-color: transparent;
+        // &::before {
+        //     content: '';
+        //     position: absolute;
+        //     top: 0;
+        //     left: 0;
+        //     right: 0;
+        //     bottom: 0;
+        //     display: block;
+        //     background: url(../images/intro-bg.svg) top center;
+        //     background-size: cover;
+        //     transform: translateZ(-.5px) scale(1.6);
+        //     z-index: -1;
+        // }
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            width: 100%;
+            height: 100%;
+            background-image: url(../images/intro-bg.svg);
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: cover;
+        }
+        .heading {
+            h2 {
+                color: #fff;
+            }
+        }
+        .content {
+            p {
+                color: #fff;
+            }
+        }
+    }
+
+    &.process-section {
+        .process-wrapper {
+            .heading {
+                h2 {
+                    color: $primary;
+                }
+                h3 {
+                    color: $dark;
+                }
+            }
+            .content {
+                p {
+                    color: $dark;
+                }
+            }
+            .process-steps {
+                .step {
+                    margin-bottom: 40px;
+                    @include max-media($sm) {    
+                        margin-bottom: 30px;
+                    }
+                    .step-wrapper {
+                        .heading {
+                            margin-bottom: 15px;
+                            @include max-media($sm) {
+                                margin-bottom: 6px;
+                            }
+                        }
+                        .content {
+                            padding-right: 15px;
+                            @include max-media($md) {
+                                padding-bottom: 15px;
+                            }
+                            @include max-media($sm) {
+                                padding-right: 0px;
+                            }
+                        }
+                        .image {
+                            text-align: center;
+                            img {
+                                max-width: 100%;
+                                height: auto;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    &.stores-section {
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            width: 100%;
+            height: 100%;
+            background-image: url(../images/stores-bg.png);
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: cover;
+        }
+
+        .stores-list-wrapper {
+            text-align: center;
+            .heading {
+                margin-bottom: 30px;
+                h3 {
+                    color: #fff
+                }
+            }
+            .stores-list {
+                .images {
+                    overflow: auto;
+                    display: flex;
+                    flex-wrap: nowrap;
+                    align-items: center;
+                    justify-content: center;
+                    padding-bottom: 5px;
+                    @include max-media($sm) {
+                        justify-content: flex-start;
+                    }
+                    &::-webkit-scrollbar {
+                        height: 5px;
+                    }
+                    &::-webkit-scrollbar-track {
+                        background: transparent;
+                    }
+                    &::-webkit-scrollbar-thumb {
+                        background: $dark-primary;
+                        border-radius: 10px;
+                    }
+                    img {
+                        padding: 0px 5px;
+                    }
+                }
+            }
+        }
+    }
+
+    &.add-store-section {
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            width: 100%;
+            height: 100%;
+            opacity: 0.2;
+            background-image: url(../images/stores-bg-trans.png);
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: cover;
+        }
+        .store-add-contact {
+            text-align: center;
+            .heading {
+                h2 {
+                    @extend .bold-48;
+                }
+            }
+        }
+    }
+
+    &.cc-repair-section {
+        .repair-container {
+            .heading {
+                margin-bottom: 15px;
+                h2 {
+                    color: $primary;
+                }
+            }
+            .content {
+                margin-bottom: 30px;
+            }
+        }
+    }
+}
