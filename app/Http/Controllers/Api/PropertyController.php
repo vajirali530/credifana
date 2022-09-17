@@ -18,6 +18,24 @@ class PropertyController extends Controller
                 'message' => "user not exist."
             ]);
         }
+        if (!isset($request->property_type) || $request->property_type == '') {
+            return response()->json([
+                'status' => 'error',
+                'message' => "property type not found."
+            ]);
+        }
+        if (!isset($request->property_address) || $request->property_address == '') {
+            return response()->json([
+                'status' => 'error',
+                'message' => "address not found."
+            ]);
+        }
+        if (!isset($request->bedrooms) || $request->bedrooms == '') {
+            return response()->json([
+                'status' => 'error',
+                'message' => "bedrooms not found."
+            ]);
+        }
 
         try {
 
@@ -33,7 +51,6 @@ class PropertyController extends Controller
             //check user subscribed or not
             $subscriptions = RealtorSubscription::where('user_id',$request->user_id)->first();
             if($subscriptions == null){
-                
                 return response()->json([
                     'status' => 'error',
                     'message' => "please subscribed on credifana. <a href='".route('pricing')."' target='_blank'>Click Here</a>"
@@ -49,11 +66,11 @@ class PropertyController extends Controller
                                     []
                                 );
                 if($subscription && $subscription['status'] == 'active'){
-                    // Rapid API Call
+                    // Rapid API Call to get Rent on specific Area
 
                     /*$curl = curl_init();
                     curl_setopt_array($curl, [
-                        CURLOPT_URL => "https://realty-mole-property-api.p.rapidapi.com/properties?address=5500%20Grand%20Lake%20Dr%2C%20San%20Antonio%2C%20TX%2C%2078244",
+                        CURLOPT_URL => "https://realty-mole-property-api.p.rapidapi.com/rentalPrice?address=".$request->property_address."&propertyType=".$request->property_type."&bedrooms=".$request->bedrooms."&compCount=2",
                         CURLOPT_RETURNTRANSFER => true,
                         CURLOPT_FOLLOWLOCATION => true,
                         CURLOPT_ENCODING => "",
@@ -62,8 +79,8 @@ class PropertyController extends Controller
                         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
                         CURLOPT_CUSTOMREQUEST => "GET",
                         CURLOPT_HTTPHEADER => [
-                            "X-RapidAPI-Host: realty-mole-property-api.p.rapidapi.com",
-                            "X-RapidAPI-Key: 3d86123917msh425ff53a8072c4ap1988fbjsnbed64ad0328b"
+                            "X-RapidAPI-Host: ".env("X_RAPIDAPI_HOST"),
+                            "X-RapidAPI-Key: ".env("X_RAPIDAPI_KEY")
                         ],
                     ]);
                     $response = curl_exec($curl);
@@ -75,21 +92,69 @@ class PropertyController extends Controller
                             'message' => $err
                         ],400);
                     } else {
-                        echo $response;
+                        print_r($response);
                     }*/
+                    if($subscriptions->used_click < $subscriptions->total_click){
 
-                    $property_data['tax'] = 1200; 
-                    $property_data['investment'] = 1300; 
-                    $property_data['months'] = 12; 
-                    $property_data['installment'] = 13; 
-                    $property_data['service_tax'] = 1200; 
-                    $property_data['extra_tax'] = 1200;
-                    
-                    return response()->json([
+                        $property_price = 599900; // from extnsn
+                        $downpayment_percent = $request->downpayment_percent ?? 20; // from extnsn
+                        $downpayment_payment = ($property_price * $downpayment_percent) / 100;
+                        $mortgage = $property_price - $downpayment_payment;
+
+                        $closing_cost_percent = 4; // from extnsn
+                        $closing_cost_amount = ($property_price * $closing_cost_percent) / 100;
+
+                        $estimate_cost_of_repair = 2; // from extnsn
+                        $total_capital_needed = $downpayment_payment + $closing_cost_amount;
+
+                        $loan_term_years = 30; // from extnsn
+                        $interest_rate = 5; // from extnsn
+                        $principal_and_interest = 12800; // from extnsn
+
+                        // pre($total_capital_needed);
+                        $response = [
+                                    "rent" => 1061.73,
+                                    "rentRangeLow" => 1020.91,
+                                    "rentRangeHigh" => 1102.55,
+                                    "longitude" => -119.7339938,
+                                    "latitude" => 36.7313029,
+                                    "listings" => [
+                                        [
+                                            "id" => "1151-S-Chestnut-Ave,-Unit-137,-Fresno,-CA-93702",
+                                            "formattedAddress" => "1151 S Chestnut Ave, Unit 137, Fresno, CA 93702",
+                                            "longitude" => -119.733612,
+                                            "latitude" => 36.73113,
+                                            "city" => "Fresno",
+                                            "state" => "CA",
+                                            "zipcode" => "93702",
+                                            "price" => 1095,
+                                            "publishedDate" => "2021-09-23T01:34:05.282Z",
+                                            "distance" => 0.039124493329239805,
+                                            "daysOld" => 359.17,
+                                            "correlation" => 0.9969,
+                                            "address" => "1151 S Chestnut Ave, Unit 137",
+                                            "county" => "Fresno County",
+                                            "bedrooms" => 2,
+                                            "bathrooms" => 2,
+                                            "propertyType" => "Condo",
+                                            "squareFootage" => 1013
+                                        ]
+                                    ]
+                                ];
+
+                        RealtorSubscription::where('user_id',$request->user_id)->update(['used_click' => ($subscriptions->used_click + 1)]);
+
+                        return response()->json([
                                         'status' => 'success',
                                         'message' => '',
-                                        'data' => $property_data
+                                        'data' => $response
                                     ], 200);
+                    }else{
+                        return response()->json([
+                                    'status' => 'error',
+                                    'message' => "You have reached your maximum limit. please upgrade your plan on credifana. <a href='".route('pricing')."'' target='_blank'>Click Here</a>"
+                                ],400);
+                    }
                 }else{
                     return response()->json([
                                     'status' => 'error',
