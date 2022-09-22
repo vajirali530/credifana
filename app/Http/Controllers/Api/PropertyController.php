@@ -29,13 +29,64 @@ class PropertyController extends Controller
                 'status' => 'error',
                 'message' => "address not found."
             ]);
-        }
-        if (!isset($request->bedrooms) || $request->bedrooms == '') {
+        }        
+        if (!isset($request->bedrooms) || $request->bedrooms == '' || $request->bedrooms <= 0) {
             return response()->json([
                 'status' => 'error',
-                'message' => "bedrooms not found."
+                'message' => "please enter valid bedroom."
             ]);
         }
+
+        if (!isset($request->property_price) || $request->property_price == '') {
+            return response()->json([
+                'status' => 'error',
+                'message' => "Property price not found."
+            ]);
+        }
+        
+        if (!isset($request->estimate_cost_of_repair) || $request->estimate_cost_of_repair == '') {
+            return response()->json([
+                'status' => 'error',
+                'message' => "Please enter estimate cost repair."
+            ]);
+        }
+        
+        if (!isset($request->interest_rate) || $request->interest_rate == '' || $request->interest_rate <= 0 || $request->interest_rate > 100) {
+            return response()->json([
+                'status' => 'error',
+                'message' => "Please enter valid interest rate."
+            ]);
+        }
+
+        if (!isset($request->unit) || $request->unit == '' || $request->unit <= 0) {
+            return response()->json([
+                'status' => 'error',
+                'message' => "Please enter valid unit for property."
+            ]);
+        }
+
+        if (!isset($request->closing_cost_percent) || $request->closing_cost_percent == '' || $request->closing_cost_percent <= 0 || $request->closing_cost_percent > 100) {
+            return response()->json([
+                'status' => 'error',
+                'message' => "Please enter valid closing cost rate."
+            ]);
+        }
+
+        if (!isset($request->vacancy) || $request->vacancy == '' || $request->vacancy <= 0 || $request->vacancy > 100) {
+            return response()->json([
+                'status' => 'error',
+                'message' => "Please enter valid vacancy rate."
+            ]);
+        }
+
+        if (!isset($request->maintenance) || $request->maintenance == '' || $request->maintenance <= 0 || $request->maintenance > 100) {
+            return response()->json([
+                'status' => 'error',
+                'message' => "Please enter valid maintenance rate."
+            ]);
+        }
+
+        
 
         try {
 
@@ -66,89 +117,184 @@ class PropertyController extends Controller
                                     []
                                 );
                 if($subscription && $subscription['status'] == 'active'){
-                    // Rapid API Call to get Rent on specific Area
-
-                    /*$curl = curl_init();
-                    curl_setopt_array($curl, [
-                        CURLOPT_URL => "https://realty-mole-property-api.p.rapidapi.com/rentalPrice?address=".$request->property_address."&propertyType=".$request->property_type."&bedrooms=".$request->bedrooms."&compCount=2",
-                        CURLOPT_RETURNTRANSFER => true,
-                        CURLOPT_FOLLOWLOCATION => true,
-                        CURLOPT_ENCODING => "",
-                        CURLOPT_MAXREDIRS => 10,
-                        CURLOPT_TIMEOUT => 30,
-                        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                        CURLOPT_CUSTOMREQUEST => "GET",
-                        CURLOPT_HTTPHEADER => [
-                            "X-RapidAPI-Host: ".env("X_RAPIDAPI_HOST"),
-                            "X-RapidAPI-Key: ".env("X_RAPIDAPI_KEY")
-                        ],
-                    ]);
-                    $response = curl_exec($curl);
-                    $err = curl_error($curl);
-                    curl_close($curl);
-                    if ($err) {
-                        return response()->json([
-                            'status' => 'error',
-                            'message' => $err
-                        ],400);
-                    } else {
-                        print_r($response);
-                    }*/
                     if($subscriptions->used_click < $subscriptions->total_click){
 
-                        $property_price = 599900; // from extnsn
-                        $downpayment_percent = $request->downpayment_percent ?? 20; // from extnsn
-                        $downpayment_payment = ($property_price * $downpayment_percent) / 100;
-                        $mortgage = $property_price - $downpayment_payment;
+                        // Rapid API Call to get Rent on specific Area
+                        $curl = curl_init();
+                        curl_setopt_array($curl, [
+                            CURLOPT_URL => "https://realty-mole-property-api.p.rapidapi.com/rentalPrice?address=".$request->property_address."&propertyType=".$request->property_type."&bedrooms=".$request->bedrooms."&compCount=2",
+                            CURLOPT_RETURNTRANSFER => true,
+                            CURLOPT_FOLLOWLOCATION => true,
+                            CURLOPT_ENCODING => "",
+                            CURLOPT_MAXREDIRS => 10,
+                            CURLOPT_TIMEOUT => 30,
+                            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                            CURLOPT_CUSTOMREQUEST => "GET",
+                            CURLOPT_HTTPHEADER => [
+                                "X-RapidAPI-Host: ".env("X_RAPIDAPI_HOST"),
+                                "X-RapidAPI-Key: ".env("X_RAPIDAPI_KEY")
+                            ],
+                        ]);
+                        $response = curl_exec($curl);
+                        $err = curl_error($curl);
+                        curl_close($curl);
+                        if ($err) {
+                            return response()->json([
+                                'status' => 'error',
+                                'message' => $err
+                            ],400);
+                        } else {
+                            $response = json_decode($response,true);
+                            if(isset($response['rent']) && $response['rent'] != ''){
+                                $rentFromApi = $response['rent'];
+                                $rentRangeLow = $response['rentRangeLow'];
+                                $rentRangeHigh = $response['rentRangeHigh'];
 
-                        $closing_cost_percent = 4; // from extnsn
-                        $closing_cost_amount = ($property_price * $closing_cost_percent) / 100;
+                                $property_price = $request->property_price; // from extnsn
+                                $downpayment_percent = $request->downpayment_percent ?? 20; // from extnsn
+                                $downpayment_payment = ($property_price * $downpayment_percent) / 100;
+                                $mortgage = $property_price - $downpayment_payment;
+                                                        
+                                $closing_cost_percent = $request->closing_cost_percent; // from extnsn
+                                $closing_cost_amount = ($property_price * $closing_cost_percent) / 100;
 
-                        $estimate_cost_of_repair = 2; // from extnsn
-                        $total_capital_needed = $downpayment_payment + $closing_cost_amount;
 
-                        $loan_term_years = 30; // from extnsn
-                        $interest_rate = 5; // from extnsn
-                        $principal_and_interest = 12800; // from extnsn
+                                $estimate_cost_of_repair = $request->estimate_cost_of_repair; // from extnsn
+                                $total_capital_needed = $downpayment_payment + $closing_cost_amount;
 
-                        // pre($total_capital_needed);
-                        $response = [
-                                    "rent" => 1061.73,
-                                    "rentRangeLow" => 1020.91,
-                                    "rentRangeHigh" => 1102.55,
-                                    "longitude" => -119.7339938,
-                                    "latitude" => 36.7313029,
-                                    "listings" => [
-                                        [
-                                            "id" => "1151-S-Chestnut-Ave,-Unit-137,-Fresno,-CA-93702",
-                                            "formattedAddress" => "1151 S Chestnut Ave, Unit 137, Fresno, CA 93702",
-                                            "longitude" => -119.733612,
-                                            "latitude" => 36.73113,
-                                            "city" => "Fresno",
-                                            "state" => "CA",
-                                            "zipcode" => "93702",
-                                            "price" => 1095,
-                                            "publishedDate" => "2021-09-23T01:34:05.282Z",
-                                            "distance" => 0.039124493329239805,
-                                            "daysOld" => 359.17,
-                                            "correlation" => 0.9969,
-                                            "address" => "1151 S Chestnut Ave, Unit 137",
-                                            "county" => "Fresno County",
-                                            "bedrooms" => 2,
-                                            "bathrooms" => 2,
-                                            "propertyType" => "Condo",
-                                            "squareFootage" => 1013
-                                        ]
-                                    ]
-                                ];
+                                $loan_term_years = $request->loan_term_years ?? 30; // from extnsn
+                                $interest_rate = $request->interest_rate; // from extnsn
 
-                        RealtorSubscription::where('user_id',$request->user_id)->update(['used_click' => ($subscriptions->used_click + 1)]);
+                                //calculate principal and interest
+                                $power = $loan_term_years * 12;
+                                $rateformula = pow((($interest_rate / 1200) + 1), $power);
+                                
+                                $principal_and_interest = floor(((($mortgage * ($interest_rate / 1200)) * $rateformula) / ($rateformula - 1)));
+                                
+                                //Unit for multi-family if another property type then default 1 unit and user can change it
+                                $unit = $request->unit;
 
-                        return response()->json([
-                                        'status' => 'success',
-                                        'message' => '',
-                                        'data' => $response
-                                    ], 200);
+                                $gross_monthly_income = $rentFromApi * $unit;
+                                $gross_yearly_income = floor($gross_monthly_income * 12);
+
+                                $taxes = (isset($request->taxes) && $request->taxes != '') ? $request->taxes : 0;
+                                $insurance = (isset($request->insurance) && $request->insurance != '') ? $request->insurance : 0;
+                                $vacancy = ($property_price * $request->vacancy) / 100;   
+                                $maintenance = ($property_price * $request->maintenance) / 100;
+
+                                $totalMonthlyCost = $taxes + $insurance + $vacancy + $maintenance;
+                                $totalYearlyCost = $totalMonthlyCost * 12;
+
+                                $monthlyNetOperator = $gross_monthly_income - $totalMonthlyCost;
+                                $yearlyNetOperator = $monthlyNetOperator * 12;
+
+                                $cap_rate = floor(($yearlyNetOperator / $property_price) * 100);
+
+                                $total_cash_flow_monthly = $monthlyNetOperator - $principal_and_interest;
+                                $total_cash_flow_yearly = $total_cash_flow_monthly * 12;
+
+                                $cash_on_cash_return = floor(($total_cash_flow_yearly / ($closing_cost_amount + $downpayment_payment)) * 100);
+
+
+                                RealtorSubscription::where('user_id',$request->user_id)->update(['used_click' => ($subscriptions->used_click + 1)]);
+
+                                $dataToSend = "
+                                                <table width='60%'>
+                                                    <tr>
+                                                        <td>Property Price</td> <td>".$property_price."</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Average Rent</td> <td>".$rentFromApi."</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Rent Range Low</td> <td>".$rentRangeLow."</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Rent Range High</td> <td>".$rentRangeHigh."</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Down Payment (".$downpayment_percent.")%</td> <td>".$downpayment_payment."</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Mortgage</td> <td>".$mortgage."</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Closing Cost (".$closing_cost_percent.")%</td> <td>".$closing_cost_amount."</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Estimate cost of repair</td> <td>".$estimate_cost_of_repair."</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Total capital needed</td> <td>".$total_capital_needed."</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Loan Term</td> <td>".$loan_term_years." Year</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Interest rate</td> <td>".$interest_rate."%</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Principal and Interest</td> <td>".$principal_and_interest."</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Unit</td> <td>".$unit."</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Gross monthly income</td> <td>".$gross_monthly_income."</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Gross yearly income</td> <td>".$gross_yearly_income."</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Taxes</td> <td>".$taxes."</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Insurance</td> <td>".$insurance."</td>
+                                                    </tr>
+                                                    <tr>
+                                                         <td>Vacancy (".$request->vacancy.")%</td> <td>".$vacancy."</td>
+                                                    </tr>
+                                                    <tr>
+                                                         <td>Maintenance (".$request->maintenance.")%</td> <td>".$maintenance."</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Total monthly cost</td> <td>".$totalMonthlyCost."</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Total yearly cost</td> <td>".$totalYearlyCost."</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Monthly net operator</td> <td>".$monthlyNetOperator."</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Yearly net operator</td> <td>".$yearlyNetOperator."</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Cap rate</td> <td>".$cap_rate."%</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Total cash flow monthly</td> <td>".$total_cash_flow_monthly."</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Total cash flow yearly</td> <td>".$total_cash_flow_yearly."</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Cash on cash return</td> <td>".$cash_on_cash_return."%</td>
+                                                    </tr>
+                                                </table>";
+
+                                return response()->json([
+                                                'status' => 'success',
+                                                'message' => '',
+                                                'data' => $dataToSend
+                                            ], 200);
+                            }else{
+                                return response()->json([
+                                    'status' => 'error',
+                                    'message' => 'some error occure, please try again.'
+                                ],400);
+                            }
+                        }
                     }else{
                         return response()->json([
                                     'status' => 'error',
@@ -171,6 +317,10 @@ class PropertyController extends Controller
             ]);
 
         }
+    }
+
+    public function getPropertyDetails2(){
+        pre($_POST);
     }
 
 }
