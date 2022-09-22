@@ -18,12 +18,38 @@ class PropertyController extends Controller
                 'message' => "user not exist."
             ]);
         }
+        
         if (!isset($request->property_type) || $request->property_type == '') {
             return response()->json([
                 'status' => 'error',
                 'message' => "property type not found."
             ]);
         }
+
+        $allowed_property_types = ['Multi-Family', 'Townhome', 'Single Family', 'Condo'];
+
+        if(!in_array($request->property_type, $allowed_property_types)){
+            return response()->json([
+                'status' => 'error',
+                'message' => "property type not match with our criteria."
+            ]);
+        }
+
+        if($request->property_type == 'Multi-Family'){
+            $request->property_type = 'Apartment';
+        }else if($request->property_type == 'Townhome'){
+            $request->property_type = 'Townhouse';
+        }else if($request->property_type == 'Single Family'){
+            $request->property_type = 'Single Family';
+        }else if($request->property_type == 'Condo'){
+            $request->property_type = 'Condo';
+        }else{
+            return response()->json([
+                'status' => 'error',
+                'message' => "property type does not match with our criteria."
+            ]);
+        }
+
         if (!isset($request->property_address) || $request->property_address == '') {
             return response()->json([
                 'status' => 'error',
@@ -41,13 +67,6 @@ class PropertyController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => "Property price not found."
-            ]);
-        }
-        
-        if (!isset($request->estimate_cost_of_repair) || $request->estimate_cost_of_repair == '') {
-            return response()->json([
-                'status' => 'error',
-                'message' => "Please enter estimate cost repair."
             ]);
         }
         
@@ -85,7 +104,6 @@ class PropertyController extends Controller
                 'message' => "Please enter valid maintenance rate."
             ]);
         }
-
         
 
         try {
@@ -136,7 +154,9 @@ class PropertyController extends Controller
                             ],
                         ]);
                         $response = curl_exec($curl);
+                        $reserr = $response;
                         $err = curl_error($curl);
+                        $http_status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
                         curl_close($curl);
                         if ($err) {
                             return response()->json([
@@ -149,6 +169,8 @@ class PropertyController extends Controller
                                 $rentFromApi = $response['rent'];
                                 $rentRangeLow = $response['rentRangeLow'];
                                 $rentRangeHigh = $response['rentRangeHigh'];
+                                $city = $response['listings'][0]['city'] ?? '-';
+                                $state = $response['listings'][0]['state'] ?? '-';
 
                                 $property_price = $request->property_price; // from extnsn
                                 $downpayment_percent = $request->downpayment_percent ?? 20; // from extnsn
@@ -159,7 +181,7 @@ class PropertyController extends Controller
                                 $closing_cost_amount = ($property_price * $closing_cost_percent) / 100;
 
 
-                                $estimate_cost_of_repair = $request->estimate_cost_of_repair; // from extnsn
+                                $estimate_cost_of_repair = (isset($request->estimate_cost_of_repair) && $request->estimate_cost_of_repair != '') ? $request->estimate_cost_of_repair : 0; // from extnsn
                                 $total_capital_needed = $downpayment_payment + $closing_cost_amount;
 
                                 $loan_term_years = $request->loan_term_years ?? 30; // from extnsn
@@ -202,6 +224,9 @@ class PropertyController extends Controller
                                                 <table width='60%'>
                                                     <tr>
                                                         <td>Property Price</td> <td>".$property_price."</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>City | State</td> <td>".$city." | ".$state."</td>
                                                     </tr>
                                                     <tr>
                                                         <td>Average Rent</td> <td>".$rentFromApi."</td>
@@ -291,7 +316,7 @@ class PropertyController extends Controller
                             }else{
                                 return response()->json([
                                     'status' => 'error',
-                                    'message' => 'some error occure, please try again.'
+                                    'message' => $reserr
                                 ],400);
                             }
                         }
