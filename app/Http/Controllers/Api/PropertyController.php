@@ -7,123 +7,83 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use App\Models\RealtorSubscription;
+use Exception;
 
 class PropertyController extends Controller
 {
     public function getPropertyDetails(Request $request) {
-        
-        if (!isset($request->user_id) || $request->user_id == '') {
-            return response()->json([
-                'status' => 'error',
-                'message' => "user not exist."
-            ]);
-        }
-        
-        if (!isset($request->property_type) || $request->property_type == '') {
-            return response()->json([
-                'status' => 'error',
-                'message' => "property type not found."
-            ]);
-        }
-
-        $allowed_property_types = ['Multi-Family', 'Townhome', 'Single Family', 'Condo'];
-
-        if(!in_array($request->property_type, $allowed_property_types)){
-            return response()->json([
-                'status' => 'error',
-                'message' => "property type not match with our criteria."
-            ]);
-        }
-
-        if($request->property_type == 'Multi-Family'){
-            $request->property_type = 'Apartment';
-        }else if($request->property_type == 'Townhome'){
-            $request->property_type = 'Townhouse';
-        }else if($request->property_type == 'Single Family'){
-            $request->property_type = 'Single Family';
-        }else if($request->property_type == 'Condo'){
-            $request->property_type = 'Condo';
-        }else{
-            return response()->json([
-                'status' => 'error',
-                'message' => "property type does not match with our criteria."
-            ]);
-        }
-
-        if (!isset($request->property_address) || $request->property_address == '') {
-            return response()->json([
-                'status' => 'error',
-                'message' => "address not found."
-            ]);
-        }        
-        if (!isset($request->bedrooms) || $request->bedrooms == '' || $request->bedrooms <= 0) {
-            return response()->json([
-                'status' => 'error',
-                'message' => "please enter valid bedroom."
-            ]);
-        }
-
-        if (!isset($request->property_price) || $request->property_price == '') {
-            return response()->json([
-                'status' => 'error',
-                'message' => "Property price not found."
-            ]);
-        }
-        
-        if (!isset($request->interest_rate) || $request->interest_rate == '' || $request->interest_rate <= 0 || $request->interest_rate > 100) {
-            return response()->json([
-                'status' => 'error',
-                'message' => "Please enter valid interest rate."
-            ]);
-        }
-
-        if (!isset($request->unit) || $request->unit == '' || $request->unit <= 0) {
-            return response()->json([
-                'status' => 'error',
-                'message' => "Please enter valid unit for property."
-            ]);
-        }
-
-        if (!isset($request->closing_cost_percent) || $request->closing_cost_percent == '' || $request->closing_cost_percent <= 0 || $request->closing_cost_percent > 100) {
-            return response()->json([
-                'status' => 'error',
-                'message' => "Please enter valid closing cost rate."
-            ]);
-        }
-
-        if (!isset($request->vacancy) || $request->vacancy == '' || $request->vacancy <= 0 || $request->vacancy > 100) {
-            return response()->json([
-                'status' => 'error',
-                'message' => "Please enter valid vacancy rate."
-            ]);
-        }
-
-        if (!isset($request->maintenance) || $request->maintenance == '' || $request->maintenance <= 0 || $request->maintenance > 100) {
-            return response()->json([
-                'status' => 'error',
-                'message' => "Please enter valid maintenance rate."
-            ]);
-        }
-        
-
         try {
+            if (!isset($request->user_id) || $request->user_id == '') {
+                throw new Exception("user not exist.");
+            }
+        
+            if (!isset($request->property_type) || $request->property_type == '') {
+                throw new Exception("property type not found.");
+            }
+
+            $allowed_property_types = ['Multi-Family', 'Townhome', 'Single Family', 'Condo'];
+
+            if(!in_array($request->property_type, $allowed_property_types)){
+                throw new Exception("property type not match with our criteria.");
+            }
+
+            if($request->property_type == 'Multi-Family'){
+                $request->property_type = 'Apartment';
+            }else if($request->property_type == 'Townhome'){
+                $request->property_type = 'Townhouse';
+            }else if($request->property_type == 'Single Family'){
+                $request->property_type = 'Single Family';
+            }else if($request->property_type == 'Condo'){
+                $request->property_type = 'Condo';
+            }else{
+                throw new Exception("property type does not match with our criteria.");
+            }
+
+            if (!isset($request->property_address) || $request->property_address == '') {
+                throw new Exception("address not found.");
+            }        
+            if (!isset($request->bedrooms) || $request->bedrooms == '' || $request->bedrooms <= 0) {
+                throw new Exception("please enter valid bedroom.");
+            }
+
+            if (!isset($request->property_price) || $request->property_price == '') {
+                throw new Exception("Property price not found.");
+            }
+            
+            if (!isset($request->downpayment_percent) || $request->downpayment_percent == '' || $request->downpayment_percent <= 0 || $request->downpayment_percent > 100) {
+                throw new Exception("Please enter valid down payment.");
+            }
+            
+            if (!isset($request->interest_rate) || $request->interest_rate == '' || $request->interest_rate <= 0 || $request->interest_rate > 100) {
+                throw new Exception("Please enter valid interest rate.");
+            }
+
+            if (!isset($request->unit) || $request->unit == '' || $request->unit <= 0) {
+                throw new Exception("Please enter valid unit for property.");
+            }
+
+            if (!isset($request->closing_cost_percent) || $request->closing_cost_percent == '' || $request->closing_cost_percent <= 0 || $request->closing_cost_percent > 100) {
+                throw new Exception("Please enter valid closing cost rate.");
+            }
+
+            if (!isset($request->vacancy) || $request->vacancy == '' || $request->vacancy <= 0 || $request->vacancy > 100) {
+                throw new Exception("Please enter valid vacancy rate.");
+            }
+
+            if (!isset($request->maintenance) || $request->maintenance == '' || $request->maintenance <= 0 || $request->maintenance > 100) {
+                throw new Exception("Please enter valid maintenance rate.");
+            }
 
             //check user exist or not
             $user = User::where('id',$request->user_id)->first();
             if($user == null){
-                return response()->json([
-                    'status' => 'error',
-                    'message' => "user not found."
-                ],400);
+                throw new Exception("user not found.");
             }
 
             //check user subscribed or not
             $subscriptions = RealtorSubscription::where('user_id',$request->user_id)->first();
             if($subscriptions == null){
-                return response()->json([
-                    'status' => 'error',
-                    'message' => "please subscribed on credifana. <a href='".route('pricing')."' target='_blank'>Click Here</a>"
-                ],400);
+                throw new Exception("please subscribed on credifana. <a href='".route('pricing')."' target='_blank'>Click Here</a>.");
             }else{
                 //first check subscription status Active or not?
                 require base_path().'/vendor/autoload.php';
@@ -159,10 +119,7 @@ class PropertyController extends Controller
                         $http_status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
                         curl_close($curl);
                         if ($err) {
-                            return response()->json([
-                                'status' => 'error',
-                                'message' => $err
-                            ],400);
+                            throw new Exception($err);
                         } else {
                             $response = json_decode($response,true);
                             if(isset($response['rent']) && $response['rent'] != ''){
@@ -173,7 +130,7 @@ class PropertyController extends Controller
                                 $state = $response['listings'][0]['state'] ?? '-';
 
                                 $property_price = $request->property_price; // from extnsn
-                                $downpayment_percent = $request->downpayment_percent ?? 20; // from extnsn
+                                $downpayment_percent = $request->downpayment_percent; // from extnsn
                                 $downpayment_payment = ($property_price * $downpayment_percent) / 100;
                                 $mortgage = $property_price - $downpayment_payment;
                                                         
@@ -314,38 +271,27 @@ class PropertyController extends Controller
                                                 'data' => $dataToSend
                                             ], 200);
                             }else{
-                                return response()->json([
-                                    'status' => 'error',
-                                    'message' => $reserr
-                                ],400);
+                                throw new Exception($reserr);
                             }
                         }
                     }else{
-                        return response()->json([
-                                    'status' => 'error',
-                                    'message' => "You have reached your maximum limit. please upgrade your plan on credifana. <a href='".route('pricing')."'' target='_blank'>Click Here</a>"
-                                ],400);
+                        throw new Exception("You have reached your maximum limit. please upgrade your plan on credifana. <a href='".route('pricing')."'' target='_blank'>Click Here</a>.");
                     }
                 }else{
-                    return response()->json([
-                                    'status' => 'error',
-                                    'message' => "Your Subscription has been expired or cancelled. please subscribed on credifana. <a href='".route('pricing')."'' target='_blank'>Click Here</a>"
-                                ],400);
+                    throw new Exception("Your Subscription has been expired or cancelled. please subscribed on credifana. <a href='".route('pricing')."'' target='_blank'>Click Here</a>.");
                 }
             }
 
-        } catch (\Throwable $th) {
+        } catch (Exception $e) {
             
             return response()->json([
                 'status' => 'error',
-                'message' => $th->getMessage()
-            ]);
+                'message' => $e->getMessage()
+            ],400);
 
         }
     }
 
-    public function getPropertyDetails2(){
-        pre($_POST);
-    }
+    
 
 }
