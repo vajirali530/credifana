@@ -24,12 +24,11 @@ Route::post('/formHandler', [FormController::class, 'index'])->name('form');
 /**
  * Billing and Subscriptions
  */
-Route::get('/billing', function(){
-    return view('pages.billing');
-})->name('pricing');
+Route::get('/billing', [BillingController::class, 'index'])->name('pricing');
+    
 Route::post('/billing-checkout', [BillingController::class, 'billingCheckout'])->name('billing-checkout');
 Route::get('/thankyou', function(){
     return view('pages.thankyou');
 })->name('thankyou');
 
-Route::get('/webhook-event', [BillingController::class, 'webhookEvent'])->name('webhook-event');
+Route::post('/webhook-event', [BillingController::class, 'webhookEvent'])->name('webhook-event');

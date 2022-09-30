@@ -9,3 +9,19 @@ body {
     perspective: 1px;
     transform-style: preserve-3d;
 }
+
+.planPoints{
+    text-align: left;  
+    padding-left: 10px;
+    li{
+        position: relative;
+        &::after{
+            content: '✓';
+            position: absolute;
+            top:0;
+            left: -15px;
+            font-weight: bold;
+            color: #0d6efd;
+        }
+    }
+}

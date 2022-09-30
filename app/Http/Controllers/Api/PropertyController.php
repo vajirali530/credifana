@@ -39,11 +39,17 @@ class PropertyController extends Controller
                 throw new Exception("property type does not match with our criteria.");
             }
 
-            if (!isset($request->property_address) || $request->property_address == '') {
-                throw new Exception("address not found.");
+            if (!isset($request->city) || $request->city == '') {
+                throw new Exception("please enter city.");
+            }        
+            if (!isset($request->state) || $request->state == '') {
+                throw new Exception("please enter state.");
             }        
             if (!isset($request->bedrooms) || $request->bedrooms == '' || $request->bedrooms <= 0) {
                 throw new Exception("please enter valid bedroom.");
+            }
+            if (!isset($request->bathrooms) || $request->bathrooms == '' || $request->bathrooms <= 0) {
+                throw new Exception("please enter valid bathroom.");
             }
 
             if (!isset($request->property_price) || $request->property_price == '') {
@@ -83,7 +89,7 @@ class PropertyController extends Controller
             //check user subscribed or not
             $subscriptions = RealtorSubscription::where('user_id',$request->user_id)->first();
             if($subscriptions == null){
-                throw new Exception("please subscribed on credifana. <a href='".route('pricing')."' target='_blank'>Click Here</a>.");
+                throw new Exception("please subscribed on credifana. <a href='".route('pricing')."?token=".encrypt($user->email)."' target='_blank'>Click Here</a>.");
             }else{
                 //first check subscription status Active or not?
                 require base_path().'/vendor/autoload.php';
@@ -100,7 +106,7 @@ class PropertyController extends Controller
                         // Rapid API Call to get Rent on specific Area
                         $curl = curl_init();
                         curl_setopt_array($curl, [
-                            CURLOPT_URL => "https://realty-mole-property-api.p.rapidapi.com/rentalPrice?address=".$request->property_address."&propertyType=".$request->property_type."&bedrooms=".$request->bedrooms."&compCount=2",
+                            CURLOPT_URL => "https://realty-mole-property-api.p.rapidapi.com/rentalListings?city=".$request->city."&state=".$request->state."&bedrooms=".$request->bedrooms."&bathrooms=".$request->bathrooms."&limit=20",
                             CURLOPT_RETURNTRANSFER => true,
                             CURLOPT_FOLLOWLOCATION => true,
                             CURLOPT_ENCODING => "",
@@ -122,13 +128,9 @@ class PropertyController extends Controller
                             throw new Exception($err);
                         } else {
                             $response = json_decode($response,true);
-                            if(isset($response['rent']) && $response['rent'] != ''){
-                                $rentFromApi = $response['rent'];
-                                $rentRangeLow = $response['rentRangeLow'];
-                                $rentRangeHigh = $response['rentRangeHigh'];
-                                $city = $response['listings'][0]['city'] ?? '-';
-                                $state = $response['listings'][0]['state'] ?? '-';
-
+                            if(isset($response) && count($response) > 0){
+                                $rentFromApi = array_sum(array_column($response,'price'))/count($response);
+                                
                                 $property_price = $request->property_price; // from extnsn
                                 $downpayment_percent = $request->downpayment_percent; // from extnsn
                                 $downpayment_payment = ($property_price * $downpayment_percent) / 100;
@@ -158,8 +160,9 @@ class PropertyController extends Controller
 
                                 $taxes = (isset($request->taxes) && $request->taxes != '') ? $request->taxes : 0;
                                 $insurance = (isset($request->insurance) && $request->insurance != '') ? $request->insurance : 0;
-                                $vacancy = ($property_price * $request->vacancy) / 100;   
-                                $maintenance = ($property_price * $request->maintenance) / 100;
+
+                                $vacancy = ($gross_monthly_income * $request->vacancy) / 100;   
+                                $maintenance = ($gross_monthly_income * $request->maintenance) / 100;
 
                                 $totalMonthlyCost = $taxes + $insurance + $vacancy + $maintenance;
                                 $totalYearlyCost = $totalMonthlyCost * 12;
@@ -167,32 +170,26 @@ class PropertyController extends Controller
                                 $monthlyNetOperator = $gross_monthly_income - $totalMonthlyCost;
                                 $yearlyNetOperator = $monthlyNetOperator * 12;
 
-                                $cap_rate = floor(($yearlyNetOperator / $property_price) * 100);
+                                $cap_rate = number_format($yearlyNetOperator / $property_price,2);
 
                                 $total_cash_flow_monthly = $monthlyNetOperator - $principal_and_interest;
                                 $total_cash_flow_yearly = $total_cash_flow_monthly * 12;
 
-                                $cash_on_cash_return = floor(($total_cash_flow_yearly / ($closing_cost_amount + $downpayment_payment)) * 100);
+                                $cash_on_cash_return = number_format($total_cash_flow_yearly / $downpayment_payment,2);
 
 
                                 RealtorSubscription::where('user_id',$request->user_id)->update(['used_click' => ($subscriptions->used_click + 1)]);
 
                                 $dataToSend = "
-                                                <table width='60%'>
+                                                <table width='100%' id='rapidApiDataTable'>
                                                     <tr>
                                                         <td>Property Price</td> <td>".$property_price."</td>
                                                     </tr>
                                                     <tr>
-                                                        <td>City | State</td> <td>".$city." | ".$state."</td>
+                                                        <td>City | State</td> <td>".$request->city." | ".$request->state."</td>
                                                     </tr>
                                                     <tr>
                                                         <td>Average Rent</td> <td>".$rentFromApi."</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Rent Range Low</td> <td>".$rentRangeLow."</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Rent Range High</td> <td>".$rentRangeHigh."</td>
                                                     </tr>
                                                     <tr>
                                                         <td>Down Payment (".$downpayment_percent.")%</td> <td>".$downpayment_payment."</td>
@@ -264,21 +261,21 @@ class PropertyController extends Controller
                                                         <td>Cash on cash return</td> <td>".$cash_on_cash_return."%</td>
                                                     </tr>
                                                 </table>";
-
+                                
                                 return response()->json([
                                                 'status' => 'success',
                                                 'message' => '',
                                                 'data' => $dataToSend
                                             ], 200);
                             }else{
-                                throw new Exception($reserr);
+                                throw new Exception("Properties does not found for specific city and state.");
                             }
                         }
                     }else{
-                        throw new Exception("You have reached your maximum limit. please upgrade your plan on credifana. <a href='".route('pricing')."'' target='_blank'>Click Here</a>.");
+                        throw new Exception("You have reached your maximum limit. please upgrade your plan on credifana. <a href='".route('pricing')."?token=".encrypt($user->email)."' target='_blank'>Click Here</a>.");
                     }
                 }else{
-                    throw new Exception("Your Subscription has been expired or cancelled. please subscribed on credifana. <a href='".route('pricing')."'' target='_blank'>Click Here</a>.");
+                    throw new Exception("Your Subscription has been expired or cancelled. please subscribed on credifana. <a href='".route('pricing')."?token=".encrypt($user->email)."' target='_blank'>Click Here</a>.");
                 }
             }
 
