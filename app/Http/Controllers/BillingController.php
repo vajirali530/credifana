@@ -41,53 +41,52 @@ class BillingController extends Controller{
             'customer_email' => $request->email,
             'payment_method_types' => ['card'],
             'line_items' => [[
-            'price' => $request->selectedPlan,
-            'quantity' => 1,
+                'price' => $request->selectedPlan,
+                'quantity' => 1,
             ]],
             'mode' => 'subscription',
             'success_url' => route('thankyou'),
-            'cancel_url' => route('pricing'),
+            'cancel_url' => route('pricing')
         ]);
 
         header('location:'.$session->url);
         exit;
     }
 
-
     public function webhookEvent(Request $request){
 
-        $payload = json_decode($request->getContent());
-        $eventType = $payload->type;
-        // $email = $payload['data']['customer_email'];
-
-        $logFile = fopen("stripe_log.txt", "a") or die("Unable to open file!");
-        fwrite($logFile, date('d-m-Y H:i:s').print_r($payload, true)."\n");
-        // fwrite($logFile, date('d-m-Y H:i:s')." Event=> ".$eventType." | Payload => ".$request->getContent()." \n");
-        fclose($logFile);
+        try {
+            $payload = json_decode($request->getContent());
+            $eventType = $payload->type;
         
-        exit;
-       /* if($eventType == 'customer.subscription.created'){
-            $payment_history_data = [
-                                'user_id' => $user->id,
-                                'subscription_id' => $subscription_id,
-                                'amount' => $amount
-                            ];
-            RealtorPaymentHistory::insert($payment_history_data);
+        
+            //customer.subscription.updated
+            if($eventType == 'checkout.session.completed'){
+                    $email = $payload->data->object->customer_email;
+                    $subscription_id = $payload->data->object->subscription;
+                    $amount = $payload->data->object->amount_total;
+                    
+                    plog("Email => ".$email." subscription => ".$subscription_id." amount => ".$amount);
+            
+                // $payment_history_data = [
+                //                     'user_id' => $user->id,
+                //                     'subscription_id' => $subscription_id,
+                //                     'amount' => $amount
+                //                 ];
+                // RealtorPaymentHistory::insert($payment_history_data);
+
+                /*
+                $user = User::where('email',$email)->first();
+                if($user == null){
+                    echo "user not found";
+                    exit;
+                }*/
+            }
+
+
+         } catch (Exception $e) {
+            plog("ERROR => ".print_r($e->getMessage(), true));
+            //throw $th;
         }
-
-
-        $email = 'ali@gmail.com';
-        $subscription_id = 'fsdfsdfsdfds';
-        $amount = 120;
-
-        $user = User::where('email',$email)->first();
-        if($user == null){
-            echo "user not found";
-            exit;
-        }*/
-        
-        
-
-        
     }
 }
