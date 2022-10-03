@@ -18,3 +18,16 @@ function plog($data){
     fwrite($logFile, date('d-m-Y H:i:s')." ==> ".$data."\n\n\n");
     fclose($logFile);
 }
+
+function getTotalClicks($price){
+    if($price == 'price_1Lni0eEviaLTUto6XV32XGd0'){
+        // Basic
+        return 15;
+    }else if($price == 'price_1Lni1TEviaLTUto6O4tgAZcX'){
+        // Standard
+        return 250;
+    }else if($price == 'price_1Lni1vEviaLTUto6DsnimYJU'){
+        // Premium
+        return 999999;
+    }
+}
