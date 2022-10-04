@@ -59,10 +59,10 @@ class BillingController extends Controller{
         require base_path().'/vendor/autoload.php';
         \Stripe\Stripe::setApiKey(env("STRIPE_SECRET_KEY"));
 
-        $newSubscriptionData = \Stripe\Subscription::retrieve(
-                                'sub_1LonoxEviaLTUto6PYL0o8Ti',
-                                []
-                            );
+        // $newSubscriptionData = \Stripe\Subscription::retrieve(
+        //                         'sub_1LonoxEviaLTUto6PYL0o8Ti',
+        //                         []
+        //                     );
         
     }
 
@@ -138,47 +138,41 @@ class BillingController extends Controller{
 
 
             if($eventType == 'customer.subscription.updated'){
-                $email = $payload->data->object->customer_email;
-                $subscription_id = $payload->data->object->subscription;
-                $amount = $payload->data->object->amount_total / 100;
                 
-                $user = User::where('email',$email)->first();
+                $subscription_id = $payload->data->object->id;
+                $amount = $payload->data->object->plan->amount / 100;
+                $plan_id = $payload->data->object->plan->id;
+                $status = $payload->data->object->status;
+               
+                if($status == 'active'){
                 
-                if($user == null){
-                    plog("Error: user (".$email.") not found");
-                    exit;
-                }
+                    $total_click = getTotalClicks($plan_id);                    
+                    $subscriptionSaveData = ['used_click' => 0, 'total_click' => $total_click];
 
-                require base_path().'/vendor/autoload.php';
-                $stripe = new \Stripe\StripeClient(env("STRIPE_SECRET_KEY"));
-
-                $subscriptionData = $stripe->subscriptions->retrieve(
-                                        $subscription_id,
-                                        []
-                                    );
-                if($subscriptionData && $subscriptionData->status == 'active'){
-                    $total_click = getTotalClicks($subscriptionData->plan->id);
-
-                    $subscriptionSaveData = [
-                                                'subscription_id' => $subscription_id,
-                                                'used_click' => 0,
-                                                'total_click' => $total_click,
-                                                ];
-
-                    RealtorSubscription::where('user_id',$user->id)->update($subscriptionSaveData);
+                    $subscriptionData = RealtorSubscription::where('subscription_id',$subscription_id)->first();
+                    if($subscriptionData){
+                        $result = $subscriptionData->update($subscriptionSaveData);
+                        
+                        $payment_history_data = [
+                                        'user_id' => $subscriptionData->user_id,
+                                        'subscription_id' => $subscription_id,
+                                        'amount' => $amount
+                                    ];
+                        RealtorPaymentHistory::insert($payment_history_data);
+                    }
+                }else{
+                    require base_path().'/vendor/autoload.php';
+                    $stripe = new \Stripe\StripeClient(env("STRIPE_SECRET_KEY"));
 
 
-                    $payment_history_data = [
-                                    'user_id' => $user->id,
-                                    'subscription_id' => $subscription_id,
-                                    'amount' => $amount
-                                ];
-                    RealtorPaymentHistory::insert($payment_history_data);
+                    // cancel existing subscriptions
+                    $subscription = $stripe->subscriptions->cancel(
+                                    $subscription_id,
+                                    []
+                                );   
                 }
             }
-
-
-         } catch (Exception $e) { 
+         } catch (Exception $e) {
             plog("ERROR => ".print_r($e->getMessage(), true));
             //throw $th;
         }
