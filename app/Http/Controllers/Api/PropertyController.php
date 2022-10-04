@@ -9,8 +9,8 @@ use App\Models\User;
 use App\Models\RealtorSubscription;
 use Exception;
 
-class PropertyController extends Controller
-{
+class PropertyController extends Controller{
+
     public function getPropertyDetails(Request $request) {
         try {
             if (!isset($request->user_id) || $request->user_id == '') {
@@ -289,6 +289,76 @@ class PropertyController extends Controller
         }
     }
 
+
+    public function getSubscriptionDetails(Request $request) {
+        try {
+            if (!isset($request->user_id) || $request->user_id == '') {
+                throw new Exception("user not exist.");
+            }
+
+            $resData = [];
+            $userSubData = RealtorSubscription::where('user_id',$request->user_id)->first();
+            if($userSubData != null){
+                
+                require base_path().'/vendor/autoload.php';
+                \Stripe\Stripe::setApiKey(env("STRIPE_SECRET_KEY"));
+                 
+
+                $subscription = \Stripe\Subscription::retrieve(
+                                    $userSubData->subscription_id,
+                                    []
+                                );
+                
+                $resData["plan"] = getPlanName($subscription->plan->id);
+                $resData["total_clicks"] = $userSubData->total_click;
+                $resData["used_clicks"] = $userSubData->used_click;
+                $resData["status"] = $subscription->status;
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => '',
+                'data' => $resData
+            ],200);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ],400);
+        }
+    }
+
+    public function cancelSubscription(Request $request) {
+        try {
+            if (!isset($request->user_id) || $request->user_id == '') {
+                throw new Exception("user not exist.");
+            }
+
+            $userSubData = RealtorSubscription::where('user_id',$request->user_id)->first();
+            if($userSubData != null){
+                
+                require base_path().'/vendor/autoload.php';
+                $stripe = new \Stripe\StripeClient(env("STRIPE_SECRET_KEY"));
+                 
+                $subscription = $stripe->subscriptions->cancel(
+                            $userSubData->subscription_id,
+                            []
+                        );
+            }
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Your subscriptions cancelled successfully. ',
+                'data' => []
+            ],200);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ],400);
+        }
+    }
     
 
 }

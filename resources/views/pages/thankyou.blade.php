@@ -18,7 +18,7 @@
                                 </div>
                                 <div class="content">
                                     <p>
-                                        Your subscription will be start in 10 minutes. Thank you for join Credifana.
+                                        Your subscription will be start in 5 minutes. Thank you for join Credifana.
                                     </p>
                                 </div>
                             </div>

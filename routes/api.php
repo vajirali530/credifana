@@ -27,4 +27,5 @@ Route::get('/ccdetails/{user_id?}', [ExtensionController::class, 'getCCDetails']
 Route::post('/setcard', [ExtensionController::class, 'setCustomCard']);
 
 Route::post('/getproperty-details', [PropertyController::class, 'getPropertyDetails'])->name('getproperty-details');
-Route::post('/getproperty-details2.php', [PropertyController::class, 'getPropertyDetails2'])->name('getproperty-details2');
+Route::post('/getsubscription-details', [PropertyController::class, 'getSubscriptionDetails'])->name('getsubscription-details');
+Route::post('/cancel-subscription', [PropertyController::class, 'cancelSubscription'])->name('cancel-subscription');

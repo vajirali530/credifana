@@ -31,3 +31,13 @@ function getTotalClicks($price){
         return 999999;
     }
 }
+
+function getPlanName($price){
+    if($price == 'price_1Lni0eEviaLTUto6XV32XGd0'){
+        return 'Basic Plan';
+    }else if($price == 'price_1Lni1TEviaLTUto6O4tgAZcX'){
+        return 'Standard Plan';
+    }else if($price == 'price_1Lni1vEviaLTUto6DsnimYJU'){
+        return 'Premium Plan';
+    }
+}

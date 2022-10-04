@@ -54,19 +54,6 @@ class BillingController extends Controller{
     }
 
 
-
-    public function webhookEvent2(Request $request){
-        require base_path().'/vendor/autoload.php';
-        \Stripe\Stripe::setApiKey(env("STRIPE_SECRET_KEY"));
-
-        // $newSubscriptionData = \Stripe\Subscription::retrieve(
-        //                         'sub_1LonoxEviaLTUto6PYL0o8Ti',
-        //                         []
-        //                     );
-        
-    }
-
-
     public function webhookEvent(Request $request){
         try {
             $payload = json_decode($request->getContent());
@@ -128,12 +115,12 @@ class BillingController extends Controller{
                         RealtorSubscription::where('user_id',$user->id)->update($subscriptionSaveData);
                     }
                                 
-                $payment_history_data = [
-                                    'user_id' => $user->id,
-                                    'subscription_id' => $subscription_id,
-                                    'amount' => $amount
-                                ];
-                RealtorPaymentHistory::insert($payment_history_data);
+                // $payment_history_data = [
+                //                     'user_id' => $user->id,
+                //                     'subscription_id' => $subscription_id,
+                //                     'amount' => $amount
+                //                 ];
+                // RealtorPaymentHistory::insert($payment_history_data);
             }
 
 

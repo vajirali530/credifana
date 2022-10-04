@@ -32,4 +32,3 @@ Route::get('/thankyou', function(){
 })->name('thankyou');
 
 Route::post('/webhook-event', [BillingController::class, 'webhookEvent'])->name('webhook-event');
-Route::get('/webhook-event2', [BillingController::class, 'webhookEvent2'])->name('webhook-event2');
