@@ -291,14 +291,24 @@ class PropertyController extends Controller{
 
 
     public function getSubscriptionDetails(Request $request) {
+       
         try {
-            if (!isset($request->user_id) || $request->user_id == '') {
+            if (!isset($request->id) || $request->id == '') {
                 throw new Exception("user not exist.");
             }
 
+            //check user exist or not
+            $user = User::where('id',$request->id)->first();
+            if($user == null){
+                throw new Exception("user not found.");
+            }
+
+
             $resData = [];
-            $userSubData = RealtorSubscription::where('user_id',$request->user_id)->first();
-            if($userSubData != null){
+            $userSubData = RealtorSubscription::where('user_id',$request->id)->first();
+            if($userSubData == null){
+                throw new Exception("please subscribed on credifana. <a href='".route('pricing')."?token=".encrypt($user->email)."' target='_blank'>Click Here</a>.");
+            }else{
                 
                 require base_path().'/vendor/autoload.php';
                 \Stripe\Stripe::setApiKey(env("STRIPE_SECRET_KEY"));
@@ -308,19 +318,22 @@ class PropertyController extends Controller{
                                     $userSubData->subscription_id,
                                     []
                                 );
-                
-                $resData["plan"] = getPlanName($subscription->plan->id);
-                $resData["total_clicks"] = $userSubData->total_click;
-                $resData["used_clicks"] = $userSubData->used_click;
-                $resData["status"] = $subscription->status;
+                                
+                if($subscription->status == 'active'){
+                    $resData["plan"] = getPlanName($subscription->plan->id);
+                    $resData["total_clicks"] = $userSubData->total_click;
+                    $resData["used_clicks"] = $userSubData->used_click;
+
+                     return response()->json([
+                            'status' => 'success',
+                            'message' => '',
+                            'data' => $resData
+                        ],200);
+
+                }else{
+                    throw new Exception("Your Subscription has been expired or cancelled. please subscribed on credifana. <a href='".route('pricing')."?token=".encrypt($user->email)."' target='_blank'>Click Here</a>.");
+                }
             }
-
-            return response()->json([
-                'status' => 'success',
-                'message' => '',
-                'data' => $resData
-            ],200);
-
         } catch (Exception $e) {
             return response()->json([
                 'status' => 'error',
@@ -331,11 +344,17 @@ class PropertyController extends Controller{
 
     public function cancelSubscription(Request $request) {
         try {
-            if (!isset($request->user_id) || $request->user_id == '') {
+            if (!isset($request->id) || $request->id == '') {
                 throw new Exception("user not exist.");
             }
 
-            $userSubData = RealtorSubscription::where('user_id',$request->user_id)->first();
+            //check user exist or not
+            $user = User::where('id',$request->id)->first();
+            if($user == null){
+                throw new Exception("user not found.");
+            }
+
+            $userSubData = RealtorSubscription::where('user_id',$request->id)->first();
             if($userSubData != null){
                 
                 require base_path().'/vendor/autoload.php';
@@ -348,7 +367,7 @@ class PropertyController extends Controller{
             }
             return response()->json([
                 'status' => 'success',
-                'message' => 'Your subscriptions cancelled successfully. ',
+                'message' => 'Your subscriptions cancelled successfully.',
                 'data' => []
             ],200);
 
