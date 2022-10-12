@@ -41,12 +41,6 @@
                                             <li>Gross monthly income</li>
                                             </ul>
                                         </div>
-                                        <!-- price_1LgQLyEviaLTUto6x79f81QI -->
-                                        <form action="{{ route('billing-checkout') }}" method="post">
-                                            @csrf
-                                            <input type="hidden" name="email" value="{{ $email ?? '' }}">
-                                            <button class="btn btn-lg btn-block btn-primary" name="selectedPlan" value="price_1Lni0eEviaLTUto6XV32XGd0">Get started</button>
-                                        </form>
                                     </div>
                                 </div>
                                 <div class="card col-md-3 mb-4 box-shadow" style="padding:0px;">

@@ -180,87 +180,39 @@ class PropertyController extends Controller{
 
                                 RealtorSubscription::where('user_id',$request->user_id)->update(['used_click' => ($subscriptions->used_click + 1)]);
 
-                                $dataToSend = "
-                                                <table width='100%' id='rapidApiDataTable'>
-                                                    <tr>
-                                                        <td>Property Price</td> <td>".$property_price."</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>City | State</td> <td>".$request->city." | ".$request->state."</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Average Rent</td> <td>".$rentFromApi."</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Down Payment (".$downpayment_percent.")%</td> <td>".$downpayment_payment."</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Mortgage</td> <td>".$mortgage."</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Closing Cost (".$closing_cost_percent.")%</td> <td>".$closing_cost_amount."</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Estimate cost of repair</td> <td>".$estimate_cost_of_repair."</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Total capital needed</td> <td>".$total_capital_needed."</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Loan Term</td> <td>".$loan_term_years." Year</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Interest rate</td> <td>".$interest_rate."%</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Principal and Interest</td> <td>".$principal_and_interest."</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Unit</td> <td>".$unit."</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Gross monthly income</td> <td>".$gross_monthly_income."</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Gross yearly income</td> <td>".$gross_yearly_income."</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Taxes</td> <td>".$taxes."</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Insurance</td> <td>".$insurance."</td>
-                                                    </tr>
-                                                    <tr>
-                                                         <td>Vacancy (".$request->vacancy.")%</td> <td>".$vacancy."</td>
-                                                    </tr>
-                                                    <tr>
-                                                         <td>Maintenance (".$request->maintenance.")%</td> <td>".$maintenance."</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Total monthly cost</td> <td>".$totalMonthlyCost."</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Total yearly cost</td> <td>".$totalYearlyCost."</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Monthly net operator</td> <td>".$monthlyNetOperator."</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Yearly net operator</td> <td>".$yearlyNetOperator."</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Cap rate</td> <td>".$cap_rate."%</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Total cash flow monthly</td> <td>".$total_cash_flow_monthly."</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Total cash flow yearly</td> <td>".$total_cash_flow_yearly."</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Cash on cash return</td> <td>".$cash_on_cash_return."%</td>
-                                                    </tr>
-                                                </table>";
+                                $dataToSend = [
+                                                "property_price" => $property_price,
+                                                "city" => $request->city,
+                                                "state" => $request->state,
+                                                "average_rent" => $rentFromApi,
+                                                "downpayment_percent" => $downpayment_percent,
+                                                "downpayment" => $downpayment_payment,
+                                                "mortgage" => $mortgage,
+                                                "closingcost_per" => $closing_cost_percent,
+                                                "closingcost" => $closing_cost_amount,
+                                                "estimate_ costofrepair" => $estimate_cost_of_repair,
+                                                "total_capital_needed" => $total_capital_needed,
+                                                "loanterm" => $loan_term_years,
+                                                "interestrate" => $interest_rate,
+                                                "principal_and_interest" => $principal_and_interest,
+                                                "unit" => $unit,
+                                                "gross_monthly_income" => $gross_monthly_income,
+                                                "gross_yearly_income" => $gross_yearly_income,
+                                                "insurance" => $insurance,
+                                                "vacancy_percent" => $request->vacancy,
+                                                "vacancy" => $vacancy,
+                                                "maintenance_percent" => $request->maintenance,
+                                                "maintenance" => $maintenance,
+                                                "total_monthly_cost"  => $totalMonthlyCost,
+                                                "total_yearly_cost"  => $totalYearlyCost,
+                                                "monthly_net_operator"  => $monthlyNetOperator,
+                                                "yearly_net_operator"  => $yearlyNetOperator,
+                                                "cap_rate"  => $cap_rate,
+                                                "total_cash_flow_monthly"  => $total_cash_flow_monthly,
+                                                "total_cash_flow_yearly"  => $total_cash_flow_yearly,
+                                                "cash_on_cash_return"  => $cash_on_cash_return,
+                                              ];
+                                                
                                 
                                 return response()->json([
                                                 'status' => 'success',
@@ -289,7 +241,6 @@ class PropertyController extends Controller{
         }
     }
 
-
     public function getSubscriptionDetails(Request $request) {
        
         try {
@@ -310,29 +261,26 @@ class PropertyController extends Controller{
                 throw new Exception("please subscribed on credifana. <a href='".route('pricing')."?token=".encrypt($user->email)."' target='_blank'>Click Here</a>.");
             }else{
                 
-                require base_path().'/vendor/autoload.php';
-                \Stripe\Stripe::setApiKey(env("STRIPE_SECRET_KEY"));
-                 
+                // require base_path().'/vendor/autoload.php';
+                // \Stripe\Stripe::setApiKey(env("STRIPE_SECRET_KEY"));
 
-                $subscription = \Stripe\Subscription::retrieve(
-                                    $userSubData->subscription_id,
-                                    []
-                                );
-                                
-                if($subscription->status == 'active'){
-                    $resData["plan"] = getPlanName($subscription->plan->id);
-                    $resData["total_clicks"] = $userSubData->total_click;
-                    $resData["used_clicks"] = $userSubData->used_click;
+                // $subscription = \Stripe\Subscription::retrieve(
+                //                     $userSubData->subscription_id,
+                //                     []
+                //                 );
 
-                     return response()->json([
-                            'status' => 'success',
-                            'message' => '',
-                            'data' => $resData
-                        ],200);
+                $resData["plan"] = $userSubData->plan_name;
+                $resData["plan_start"] = date('jS M Y', strtotime($userSubData->plan_start));
+                $resData["plan_end"] = date('jS M Y', strtotime($userSubData->plan_end));
+                $resData["is_cancelled"] = $userSubData->is_cancelled;
+                $resData["used_click"] = $userSubData->used_click;
+                $resData["total_click"] = $userSubData->total_click;
 
-                }else{
-                    throw new Exception("Your Subscription has been expired or cancelled. please subscribed on credifana. <a href='".route('pricing')."?token=".encrypt($user->email)."' target='_blank'>Click Here</a>.");
-                }
+                return response()->json([
+                    'status' => 'success',
+                    'message' => '',
+                    'data' => $resData
+                ],200);
             }
         } catch (Exception $e) {
             return response()->json([
@@ -360,10 +308,14 @@ class PropertyController extends Controller{
                 require base_path().'/vendor/autoload.php';
                 $stripe = new \Stripe\StripeClient(env("STRIPE_SECRET_KEY"));
                  
+                //cancel subscription
                 $subscription = $stripe->subscriptions->cancel(
                             $userSubData->subscription_id,
                             []
                         );
+
+                $result = $userSubData->update(['is_cancelled' => 1]);
+                
             }
             return response()->json([
                 'status' => 'success',

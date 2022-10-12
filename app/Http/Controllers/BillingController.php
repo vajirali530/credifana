@@ -54,66 +54,78 @@ class BillingController extends Controller{
     }
 
 
+    public function webhookEvent2(Request $request){
+        require base_path().'/vendor/autoload.php';
+        $stripe = new \Stripe\StripeClient(env("STRIPE_SECRET_KEY"));
+
+        $subscription_id = 'sub_1LpsipEviaLTUto6Nk6syaTm';
+
+        $newSubscriptionData = $stripe->subscriptions->retrieve(
+                                $subscription_id,
+                                []
+                            );
+        pre($newSubscriptionData);
+    }
+
+
     public function webhookEvent(Request $request){
         try {
             $payload = json_decode($request->getContent());
             $eventType = $payload->type;
             
             if($eventType == 'checkout.session.completed'){
-                    $email = $payload->data->object->customer_email;
-                    $subscription_id = $payload->data->object->subscription;
-                    $amount = $payload->data->object->amount_total / 100;
-                    
-                    $user = User::where('email',$email)->first();
-                    
-                    if($user == null){
-                        plog("Error: user (".$email.") not found");
-                        exit;
-                    }
+                $email = $payload->data->object->customer_email;
+                $subscription_id = $payload->data->object->subscription;
+                $amount = $payload->data->object->amount_total / 100;
+                
+                $user = User::where('email',$email)->first();
+                
+                if($user == null){
+                    plog("Error: user (".$email.") not found");
+                    exit;
+                }
 
-                    require base_path().'/vendor/autoload.php';
-                    $stripe = new \Stripe\StripeClient(env("STRIPE_SECRET_KEY"));
+                require base_path().'/vendor/autoload.php';
+                $stripe = new \Stripe\StripeClient(env("STRIPE_SECRET_KEY"));
 
-                    $newSubscriptionData = $stripe->subscriptions->retrieve(
-                                            $subscription_id,
-                                            []
-                                        );
-                    $total_click = getTotalClicks($newSubscriptionData->plan->id);
+                $newSubscriptionData = $stripe->subscriptions->retrieve(
+                                        $subscription_id,
+                                        []
+                                    );
 
-                    $subscriptionData = RealtorSubscription::where('user_id',$user->id)->first();
-                    
-                    if($subscriptionData == null){
-                        $subscriptionSaveData = [
-                                                'user_id' => $user->id,
-                                                'subscription_id' => $subscription_id,
-                                                'used_click' => 0,
-                                                'total_click' => $total_click,
-                                                ];
+                $plan_name = getPlanName($newSubscriptionData->plan->id);
+                $total_click = getTotalClicks($plan_name);
 
-                        RealtorSubscription::insert($subscriptionSaveData);
-                    }else{
+                $subscriptionData = RealtorSubscription::where('user_id',$user->id)->first();
+                
+                if($subscriptionData->subscription_id != ''){
+
+                    $existingSubscription = $stripe->subscriptions->retrieve(
+                        $subscriptionData->subscription_id,
+                        []
+                    );
+                    if($existingSubscription && $existingSubscription->status == 'active'){
                         
-                        $existingSubscription = $stripe->subscriptions->retrieve(
-                                            $subscriptionData->subscription_id,
-                                            []
-                                        );
-                        if($existingSubscription && $existingSubscription->status == 'active'){
-                            
-                            // cancel existing subscriptions
-                           $subscription = $stripe->subscriptions->cancel(
-                                            $subscriptionData->subscription_id,
-                                            []
-                                        );                            
-                        }
-
-                        $subscriptionSaveData = [
-                                                'subscription_id' => $subscription_id,
-                                                'used_click' => 0,
-                                                'total_click' => $total_click,
-                                                ];
-
-                        RealtorSubscription::where('user_id',$user->id)->update($subscriptionSaveData);
+                        // cancel existing subscriptions
+                        $subscription = $stripe->subscriptions->cancel(
+                            $subscriptionData->subscription_id,
+                            []
+                        );                            
                     }
+                }
+
+                $subscriptionSaveData = [
+                                        'subscription_id' => $subscription_id,
+                                        'plan_name' => $plan_name,
+                                        'plan_start' => date('Y-m-d H:i:s', $newSubscriptionData->current_period_start),
+                                        'plan_end' => date('Y-m-d H:i:s', $newSubscriptionData->current_period_end),
+                                        'is_cancelled' => 0,
+                                        'used_click' => 0,
+                                        'total_click' => $total_click,
+                                        ];
+
+                RealtorSubscription::where('user_id',$user->id)->update($subscriptionSaveData);
+                    
                                 
                 // $payment_history_data = [
                 //                     'user_id' => $user->id,
@@ -130,12 +142,22 @@ class BillingController extends Controller{
                 $amount = $payload->data->object->plan->amount / 100;
                 $plan_id = $payload->data->object->plan->id;
                 $status = $payload->data->object->status;
+                $plan_start = $payload->data->object->current_period_start;
+                $plan_end = $payload->data->object->current_period_end;
                
                 if($status == 'active'){
                 
-                    $total_click = getTotalClicks($plan_id);                    
-                    $subscriptionSaveData = ['used_click' => 0, 'total_click' => $total_click];
+                    $plan_name = getPlanName($plan_id);
+                    $total_click = getTotalClicks($plan_name);
 
+                    $subscriptionSaveData = [
+                                            'plan_name' => $plan_name,
+                                            'plan_start' => date('Y-m-d H:i:s', $plan_start),
+                                            'plan_end' => date('Y-m-d H:i:s', $plan_end),
+                                            'is_cancelled' => 0,
+                                            'used_click' => 0, 
+                                            'total_click' => $total_click
+                                        ];
                     $subscriptionData = RealtorSubscription::where('subscription_id',$subscription_id)->first();
                     if($subscriptionData){
                         $result = $subscriptionData->update($subscriptionSaveData);
@@ -156,9 +178,11 @@ class BillingController extends Controller{
                     $subscription = $stripe->subscriptions->cancel(
                                     $subscription_id,
                                     []
-                                );   
+                                );
+                    RealtorSubscription::where('subscription_id',$subscription_id)->update(['is_cancelled' => 1]);
                 }
             }
+
          } catch (Exception $e) {
             plog("ERROR => ".print_r($e->getMessage(), true));
             //throw $th;

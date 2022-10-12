@@ -19,25 +19,20 @@ function plog($data){
     fclose($logFile);
 }
 
-function getTotalClicks($price){
-    if($price == 'price_1Lni0eEviaLTUto6XV32XGd0'){
-        // Basic
+function getTotalClicks($plan){
+    if($plan == 'basic'){
         return 15;
-    }else if($price == 'price_1Lni1TEviaLTUto6O4tgAZcX'){
-        // Standard
+    }else if($plan == 'standard'){
         return 250;
-    }else if($price == 'price_1Lni1vEviaLTUto6DsnimYJU'){
-        // Premium
+    }else if($plan == 'premium'){
         return 999999;
     }
 }
 
 function getPlanName($price){
-    if($price == 'price_1Lni0eEviaLTUto6XV32XGd0'){
-        return 'Basic Plan';
-    }else if($price == 'price_1Lni1TEviaLTUto6O4tgAZcX'){
-        return 'Standard Plan';
+    if($price == 'price_1Lni1TEviaLTUto6O4tgAZcX'){
+        return 'standard';
     }else if($price == 'price_1Lni1vEviaLTUto6DsnimYJU'){
-        return 'Premium Plan';
+        return 'premium';
     }
 }

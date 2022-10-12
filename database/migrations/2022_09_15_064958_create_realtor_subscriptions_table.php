@@ -17,6 +17,10 @@ class CreateRealtorSubscriptionsTable extends Migration
             $table->id();
             $table->integer('user_id');
             $table->string('subscription_id')->nullable();
+            $table->string('plan_name')->nullable();
+            $table->dateTime('plan_start')->nullable();
+            $table->dateTime('plan_end')->nullable();
+            $table->boolean('is_cancelled')->default(0);
             $table->integer('used_click')->default(0);
             $table->integer('total_click')->default(0);
             $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));

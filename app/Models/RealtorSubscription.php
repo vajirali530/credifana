@@ -9,5 +9,5 @@ class RealtorSubscription extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'subscription_id','used_click','total_click'];
+    protected $fillable = ['user_id', 'subscription_id', 'plan_name', 'plan_start', 'plan_end', 'is_cancelled', 'used_click','total_click'];
 }

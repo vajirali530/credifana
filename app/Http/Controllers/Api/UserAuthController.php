@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\RealtorSubscription;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -76,7 +77,20 @@ class UserAuthController extends Controller
             $user_data['password'] = Hash::make($user_data['password']);
 
             $registeredUser = User::create($user_data);
+            
+            //start basic plan for this user
+            $subscriptionSaveData = [
+                                    'user_id' => $registeredUser->id,
+                                    'subscription_id' => null,
+                                    'plan_name' => 'basic',
+                                    'plan_start' => date('Y-m-d H:i:s'),
+                                    'plan_end' => date('Y-m-d H:i:s', strtotime("+30 days")),
+                                    'used_click' => 0,
+                                    'total_click' => getTotalClicks('basic'),
+                                    ];
 
+            RealtorSubscription::insert($subscriptionSaveData);
+            
             return response()->json([
                 'status' => 'success',
                 'user_data' => $registeredUser
