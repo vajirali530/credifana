@@ -53,7 +53,6 @@ class BillingController extends Controller{
         exit;
     }
 
-
     public function webhookEvent2(Request $request){
         require base_path().'/vendor/autoload.php';
         $stripe = new \Stripe\StripeClient(env("STRIPE_SECRET_KEY"));
@@ -66,7 +65,6 @@ class BillingController extends Controller{
                             );
         pre($newSubscriptionData);
     }
-
 
     public function webhookEvent(Request $request){
         try {
@@ -188,4 +186,50 @@ class BillingController extends Controller{
             //throw $th;
         }
     }
+
+    public function cronEvent(Request $request){
+
+        require base_path().'/vendor/autoload.php';
+        $stripe = new \Stripe\StripeClient(env("STRIPE_SECRET_KEY"));
+
+        try{
+            $subsData = RealtorSubscription::where('plan_end','<',date('Y-m-d'))
+                                            ->get()
+                                            ->toArray();
+            
+            foreach($subsData as $detail){
+                if($detail['subscription_id'] != ''){
+
+                    $existingSubscription = $stripe->subscriptions->retrieve(
+                        $detail['subscription_id'],
+                        []
+                    );
+                    
+                    if($existingSubscription && $existingSubscription->status == 'active'){
+                        // cancel existing subscriptions
+                        $subscription = $stripe->subscriptions->cancel(
+                                            $detail['subscription_id'],
+                                            []
+                                        );
+                    }
+                }
+
+                $subscriptionSaveData = [
+                                        'subscription_id' => null,
+                                        'plan_name' => 'basic',
+                                        'plan_start' => date('Y-m-d H:i:s'),
+                                        'plan_end' => date('Y-m-d H:i:s', strtotime("+30 days")),
+                                        'is_cancelled' => 0,
+                                        'used_click' => 0,
+                                        'total_click' => getTotalClicks('basic')
+                                        ];
+            
+                RealtorSubscription::where('id', $detail['id'])->update($subscriptionSaveData);
+            }
+        } catch (Exception $e) {
+            // print_r($e->getMessage());
+            plog("ERROR => ".print_r($e->getMessage(), true));
+        }
+    }
+
 }

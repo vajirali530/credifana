@@ -30,21 +30,21 @@ class UserAuthController extends Controller
                         ]);
                     } else {
                         return response()->json([
-                            'status' => 'pwd_error',
-                            'message' => 'Password does not match'
-                        ], 400);
+                            'status' => 'error',
+                            'message' => 'Invalid Credentials'
+                        ]);
                     }
                 } else {
                     return response()->json([
-                        'status' => 'unauthorized',
+                        'status' => 'error',
                         'message' => 'Invalid Credentials'
-                    ], 401);
+                    ]);
                 }
 
             } catch (\Throwable $th) {
                 
                 return response()->json([
-                    'error' => true,
+                    'status' => 'error',
                     'message' => $th->getMessage()
                 ]);
 
@@ -52,7 +52,7 @@ class UserAuthController extends Controller
         } else {
             return response()->json([
                 'status' => 'error',
-                'errors' => $login_data->errors()
+                'message' => 'please enter valid data'
             ]);
         }
 
@@ -99,7 +99,7 @@ class UserAuthController extends Controller
         } catch (\Throwable $th) {
             
             return response()->json([
-                'error' => true,
+                'status' => 'error',
                 'message' => $th->getMessage()
             ]);
 

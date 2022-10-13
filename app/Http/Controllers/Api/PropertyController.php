@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use App\Models\RealtorSubscription;
+use App\Models\RealtorPropertyHistory;
 use Exception;
 
 class PropertyController extends Controller{
@@ -91,16 +92,19 @@ class PropertyController extends Controller{
             if($subscriptions == null){
                 throw new Exception("please subscribed on credifana. <a href='".route('pricing')."?token=".encrypt($user->email)."' target='_blank'>Click Here</a>.");
             }else{
-                //first check subscription status Active or not?
-                require base_path().'/vendor/autoload.php';
-                \Stripe\Stripe::setApiKey(env("STRIPE_SECRET_KEY"));
-                 
 
-                $subscription = \Stripe\Subscription::retrieve(
-                                    $subscriptions->subscription_id,
-                                    []
-                                );
-                if($subscription && $subscription['status'] == 'active'){
+                //first check subscription status Active or not?
+                // require base_path().'/vendor/autoload.php';
+                // \Stripe\Stripe::setApiKey(env("STRIPE_SECRET_KEY"));
+
+                // $subscription = \Stripe\Subscription::retrieve(
+                //                     $subscriptions->subscription_id,
+                //                     []
+                //                 );
+
+                $currentDate = date('Y-m-d');
+                $ExpireDate = date('Y-m-d',strtotime($subscriptions->plan_end));
+                if($ExpireDate >= $currentDate){
                     if($subscriptions->used_click < $subscriptions->total_click){
 
                         // Rapid API Call to get Rent on specific Area
@@ -179,40 +183,51 @@ class PropertyController extends Controller{
 
 
                                 RealtorSubscription::where('user_id',$request->user_id)->update(['used_click' => ($subscriptions->used_click + 1)]);
+                                
+                                $basicData = [
+                                            "property_price" => $property_price,
+                                            "city" => $request->city,
+                                            "state" => $request->state,
+                                            "average_rent" => $rentFromApi,
+                                            "downpayment_percent" => $downpayment_percent,
+                                            "downpayment" => $downpayment_payment,
+                                            "mortgage" => $mortgage,
+                                            "closingcost_per" => $closing_cost_percent,
+                                            "closingcost" => $closing_cost_amount,
+                                            "estimate_ costofrepair" => $estimate_cost_of_repair,
+                                            "total_capital_needed" => $total_capital_needed,
+                                            "loanterm" => $loan_term_years,
+                                            "interestrate" => $interest_rate,
+                                            "unit" => $unit,
+                                            "gross_monthly_income" => $gross_monthly_income,
+                                            "gross_yearly_income" => $gross_yearly_income,
+                                            "insurance" => $insurance,
+                                            "vacancy_percent" => $request->vacancy,
+                                            "vacancy" => $vacancy,
+                                            "maintenance_percent" => $request->maintenance,
+                                            "maintenance" => $maintenance,
+                                            "total_monthly_cost"  => $totalMonthlyCost,
+                                            "total_yearly_cost"  => $totalYearlyCost
+                                        ];
+                            
+                                $advanceData = [
+                                            "principal_and_interest" => $principal_and_interest,
+                                            "monthly_net_operator"  => $monthlyNetOperator,
+                                            "yearly_net_operator"  => $yearlyNetOperator,
+                                            "cap_rate"  => $cap_rate,
+                                            "total_cash_flow_monthly"  => $total_cash_flow_monthly,
+                                            "total_cash_flow_yearly"  => $total_cash_flow_yearly,
+                                            "cash_on_cash_return"  => $cash_on_cash_return
+                                          ];
 
-                                $dataToSend = [
-                                                "property_price" => $property_price,
-                                                "city" => $request->city,
-                                                "state" => $request->state,
-                                                "average_rent" => $rentFromApi,
-                                                "downpayment_percent" => $downpayment_percent,
-                                                "downpayment" => $downpayment_payment,
-                                                "mortgage" => $mortgage,
-                                                "closingcost_per" => $closing_cost_percent,
-                                                "closingcost" => $closing_cost_amount,
-                                                "estimate_ costofrepair" => $estimate_cost_of_repair,
-                                                "total_capital_needed" => $total_capital_needed,
-                                                "loanterm" => $loan_term_years,
-                                                "interestrate" => $interest_rate,
-                                                "principal_and_interest" => $principal_and_interest,
-                                                "unit" => $unit,
-                                                "gross_monthly_income" => $gross_monthly_income,
-                                                "gross_yearly_income" => $gross_yearly_income,
-                                                "insurance" => $insurance,
-                                                "vacancy_percent" => $request->vacancy,
-                                                "vacancy" => $vacancy,
-                                                "maintenance_percent" => $request->maintenance,
-                                                "maintenance" => $maintenance,
-                                                "total_monthly_cost"  => $totalMonthlyCost,
-                                                "total_yearly_cost"  => $totalYearlyCost,
-                                                "monthly_net_operator"  => $monthlyNetOperator,
-                                                "yearly_net_operator"  => $yearlyNetOperator,
-                                                "cap_rate"  => $cap_rate,
-                                                "total_cash_flow_monthly"  => $total_cash_flow_monthly,
-                                                "total_cash_flow_yearly"  => $total_cash_flow_yearly,
-                                                "cash_on_cash_return"  => $cash_on_cash_return,
-                                              ];
+
+                                if($subscriptions->plan_name == "basic"){
+                                    $dataToSend = $basicData;
+                                }else if($subscriptions->plan_name == "standard" || $subscriptions->plan_name == "premium"){
+                                   $dataToSend = $basicData + $advanceData;
+                                }
                                                 
+                                RealtorPropertyHistory::insert(["user_id" => $request->user_id, "pro_detail" => json_encode($dataToSend)]);
                                 
                                 return response()->json([
                                                 'status' => 'success',
@@ -227,6 +242,7 @@ class PropertyController extends Controller{
                         throw new Exception("You have reached your maximum limit. please upgrade your plan on credifana. <a href='".route('pricing')."?token=".encrypt($user->email)."' target='_blank'>Click Here</a>.");
                     }
                 }else{
+                    $subscriptions->update(['is_cancelled' => 1]);
                     throw new Exception("Your Subscription has been expired or cancelled. please subscribed on credifana. <a href='".route('pricing')."?token=".encrypt($user->email)."' target='_blank'>Click Here</a>.");
                 }
             }
@@ -304,18 +320,18 @@ class PropertyController extends Controller{
 
             $userSubData = RealtorSubscription::where('user_id',$request->id)->first();
             if($userSubData != null){
-                
-                require base_path().'/vendor/autoload.php';
-                $stripe = new \Stripe\StripeClient(env("STRIPE_SECRET_KEY"));
+
+                if($userSubData->subscription_id != ''){
+                    require base_path().'/vendor/autoload.php';
+                    $stripe = new \Stripe\StripeClient(env("STRIPE_SECRET_KEY"));
                  
-                //cancel subscription
-                $subscription = $stripe->subscriptions->cancel(
+                    //cancel subscription
+                    $subscription = $stripe->subscriptions->cancel(
                             $userSubData->subscription_id,
                             []
                         );
-
+                }
                 $result = $userSubData->update(['is_cancelled' => 1]);
-                
             }
             return response()->json([
                 'status' => 'success',
@@ -330,6 +346,32 @@ class PropertyController extends Controller{
             ],400);
         }
     }
-    
+
+    public function getPropertyHistory(Request $request){
+        try {
+            if (!isset($request->id) || $request->id == '') {
+                throw new Exception("user not exist.");
+            }
+
+            //check user exist or not
+            $user = User::where('id',$request->id)->first();
+            if($user == null){
+                throw new Exception("user not found.");
+            }
+
+            $proHistoryData = RealtorPropertyHistory::where('user_id',$request->id)->get()->toArray();
+            return response()->json([
+                'status' => 'success',
+                'message' => '',
+                'data' => $proHistoryData
+            ],200);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ],400);
+        }
+    }
 
 }
