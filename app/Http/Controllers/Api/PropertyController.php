@@ -291,6 +291,7 @@ class PropertyController extends Controller{
                 $resData["is_cancelled"] = $userSubData->is_cancelled;
                 $resData["used_click"] = $userSubData->used_click;
                 $resData["total_click"] = $userSubData->total_click;
+                $resData["change_plan"] = route('pricing')."?token=".encrypt($user->email);
 
                 return response()->json([
                     'status' => 'success',

@@ -30,9 +30,9 @@ function getTotalClicks($plan){
 }
 
 function getPlanName($price){
-    if($price == 'price_1Lni1TEviaLTUto6O4tgAZcX'){
+    if($price == env("STANDARD_PLAN_ID")){
         return 'standard';
-    }else if($price == 'price_1Lni1vEviaLTUto6DsnimYJU'){
+    }else if($price == env("PREMIUM_PLAN_ID")){
         return 'premium';
     }
 }
