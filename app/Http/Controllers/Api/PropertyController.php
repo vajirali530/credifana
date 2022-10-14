@@ -136,6 +136,9 @@ class PropertyController extends Controller{
                                 $rentFromApi = array_sum(array_column($response,'price'))/count($response);
                                 
                                 $property_price = $request->property_price; // from extnsn
+                                $property_image = $request->property_image; // from extnsn
+                                $property_name = $request->property_name; // from extnsn
+
                                 $downpayment_percent = $request->downpayment_percent; // from extnsn
                                 $downpayment_payment = ($property_price * $downpayment_percent) / 100;
                                 $mortgage = $property_price - $downpayment_payment;
@@ -186,6 +189,9 @@ class PropertyController extends Controller{
                                 
                                 $basicData = [
                                             "property_price" => $property_price,
+                                            "property_image" => $property_image,
+                                            "property_type" => $request->property_type,
+                                            "property_name" => $property_name,
                                             "city" => $request->city,
                                             "state" => $request->state,
                                             "average_rent" => $rentFromApi,
@@ -194,30 +200,31 @@ class PropertyController extends Controller{
                                             "mortgage" => $mortgage,
                                             "closingcost_per" => $closing_cost_percent,
                                             "closingcost" => $closing_cost_amount,
-                                            "estimate_ costofrepair" => $estimate_cost_of_repair,
+                                            "estimate_costofrepair" => $estimate_cost_of_repair,
                                             "total_capital_needed" => $total_capital_needed,
                                             "loanterm" => $loan_term_years,
                                             "interestrate" => $interest_rate,
                                             "unit" => $unit,
                                             "gross_monthly_income" => $gross_monthly_income,
                                             "gross_yearly_income" => $gross_yearly_income,
+                                            "taxes" => $taxes,
                                             "insurance" => $insurance,
                                             "vacancy_percent" => $request->vacancy,
                                             "vacancy" => $vacancy,
                                             "maintenance_percent" => $request->maintenance,
                                             "maintenance" => $maintenance,
-                                            "total_monthly_cost"  => $totalMonthlyCost,
-                                            "total_yearly_cost"  => $totalYearlyCost
+                                            "total_monthly_cost"  => number_format($totalMonthlyCost),
+                                            "total_yearly_cost"  => number_format($totalYearlyCost,2)
                                         ];
                             
                                 $advanceData = [
-                                            "principal_and_interest" => $principal_and_interest,
-                                            "monthly_net_operator"  => $monthlyNetOperator,
-                                            "yearly_net_operator"  => $yearlyNetOperator,
+                                            "principal_and_interest" => number_format($principal_and_interest,2),
+                                            "monthly_net_operator"  => number_format($monthlyNetOperator,2),
+                                            "yearly_net_operator"  => number_format($yearlyNetOperator,2),
                                             "cap_rate"  => $cap_rate,
-                                            "total_cash_flow_monthly"  => $total_cash_flow_monthly,
-                                            "total_cash_flow_yearly"  => $total_cash_flow_yearly,
-                                            "cash_on_cash_return"  => $cash_on_cash_return
+                                            "total_cash_flow_monthly"  => number_format($total_cash_flow_monthly,2),
+                                            "total_cash_flow_yearly"  => number_format($total_cash_flow_yearly,2),
+                                            "cash_on_cash_return"  => number_format($cash_on_cash_return,2)
                                           ];
 
 
@@ -252,7 +259,7 @@ class PropertyController extends Controller{
             return response()->json([
                 'status' => 'error',
                 'message' => $e->getMessage()
-            ],400);
+            ]);
 
         }
     }
