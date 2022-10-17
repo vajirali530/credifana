@@ -29,4 +29,4 @@ Route::post('/setcard', [ExtensionController::class, 'setCustomCard']);
 Route::post('/getproperty-details', [PropertyController::class, 'getPropertyDetails'])->name('getproperty-details');
 Route::get('/getsubscription-details/{id}', [PropertyController::class, 'getSubscriptionDetails'])->name('getsubscription-details');
 Route::get('/getproperty-history/{id}', [PropertyController::class, 'getPropertyHistory'])->name('getproperty-history');
-Route::get('/cancel-subscription/{id}', [PropertyController::class, 'cancelSubscription'])->name('cancel-subscription');
+Route::post('/cancel-subscription', [PropertyController::class, 'cancelSubscription'])->name('cancel-subscription');

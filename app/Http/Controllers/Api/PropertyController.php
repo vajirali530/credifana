@@ -110,7 +110,7 @@ class PropertyController extends Controller{
                         // Rapid API Call to get Rent on specific Area
                         $curl = curl_init();
                         curl_setopt_array($curl, [
-                            CURLOPT_URL => "https://realty-mole-property-api.p.rapidapi.com/rentalListings?city=".$request->city."&state=".$request->state."&bedrooms=".$request->bedrooms."&bathrooms=".$request->bathrooms."&limit=20",
+                            CURLOPT_URL => "https://realty-mole-property-api.p.rapidapi.com/rentalListings?city=".$request->city."&state=".$request->state."&bedrooms=".$request->bedrooms."&bathrooms=".$request->bathrooms,
                             CURLOPT_RETURNTRANSFER => true,
                             CURLOPT_FOLLOWLOCATION => true,
                             CURLOPT_ENCODING => "",
@@ -188,6 +188,7 @@ class PropertyController extends Controller{
                                 RealtorSubscription::where('user_id',$request->user_id)->update(['used_click' => ($subscriptions->used_click + 1)]);
                                 
                                 $basicData = [
+                                            "average_rent_formula" => count($response)." ".$request->property_type.", Bedroom: ".$request->bedrooms." and Bathroom: ".$request->bathrooms.", Average rent: $".$rentFromApi,
                                             "property_price" => $property_price,
                                             "property_image" => $property_image,
                                             "property_type" => $request->property_type,
@@ -367,7 +368,7 @@ class PropertyController extends Controller{
                 throw new Exception("user not found.");
             }
 
-            $proHistoryData = RealtorPropertyHistory::where('user_id',$request->id)->get()->toArray();
+            $proHistoryData = RealtorPropertyHistory::where('user_id',$request->id)->orderBy('id','DESC')->get()->toArray();
             return response()->json([
                 'status' => 'success',
                 'message' => '',
