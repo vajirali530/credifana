@@ -189,42 +189,42 @@ class PropertyController extends Controller{
                                 
                                 $basicData = [
                                             "average_rent_formula" => count($response)." ".$request->property_type.", Bedroom: ".$request->bedrooms." and Bathroom: ".$request->bathrooms.", Average rent: $".$rentFromApi,
-                                            "property_price" => $property_price,
+                                            "property_price" => number_format($property_price),
                                             "property_image" => $property_image,
                                             "property_type" => $request->property_type,
                                             "property_name" => $property_name,
                                             "city" => $request->city,
                                             "state" => $request->state,
-                                            "average_rent" => $rentFromApi,
+                                            "average_rent" => "$".number_format($rentFromApi,2),
                                             "downpayment_percent" => $downpayment_percent,
-                                            "downpayment" => $downpayment_payment,
-                                            "mortgage" => $mortgage,
+                                            "downpayment" => "$".number_format($downpayment_payment,2),
+                                            "mortgage" => "$".number_format($mortgage,2),
                                             "closingcost_per" => $closing_cost_percent,
-                                            "closingcost" => $closing_cost_amount,
-                                            "estimate_costofrepair" => $estimate_cost_of_repair,
-                                            "total_capital_needed" => $total_capital_needed,
-                                            "loanterm" => $loan_term_years,
-                                            "interestrate" => $interest_rate,
+                                            "closingcost" => "$".number_format($closing_cost_amount,2),
+                                            "estimate_costofrepair" => "$".number_format($estimate_cost_of_repair,2),
+                                            "total_capital_needed" => "$".number_format($total_capital_needed,2),
+                                            "loanterm" => $loan_term_years." Years",
+                                            "interestrate" => $interest_rate."%",
                                             "unit" => $unit,
-                                            "gross_monthly_income" => $gross_monthly_income,
-                                            "gross_yearly_income" => $gross_yearly_income,
-                                            "taxes" => $taxes,
-                                            "insurance" => $insurance,
+                                            "gross_monthly_income" => "$".number_format($gross_monthly_income,2),
+                                            "gross_yearly_income" => "$".number_format($gross_yearly_income,2),
+                                            "taxes" => "$".number_format($taxes,2),
+                                            "insurance" => "$".number_format($insurance,2),
                                             "vacancy_percent" => $request->vacancy,
-                                            "vacancy" => $vacancy,
+                                            "vacancy" => "$".number_format($vacancy,2),
                                             "maintenance_percent" => $request->maintenance,
-                                            "maintenance" => $maintenance,
-                                            "total_monthly_cost"  => number_format($totalMonthlyCost),
-                                            "total_yearly_cost"  => number_format($totalYearlyCost,2)
+                                            "maintenance" => "$".number_format($maintenance,2),
+                                            "total_monthly_cost"  => "$".number_format($totalMonthlyCost,2),
+                                            "total_yearly_cost"  => "$".number_format($totalYearlyCost,2)
                                         ];
                             
                                 $advanceData = [
-                                            "principal_and_interest" => number_format($principal_and_interest,2),
-                                            "monthly_net_operator"  => number_format($monthlyNetOperator,2),
-                                            "yearly_net_operator"  => number_format($yearlyNetOperator,2),
+                                            "principal_and_interest" => "$".number_format($principal_and_interest,2),
+                                            "monthly_net_operator"  => "$".number_format($monthlyNetOperator,2),
+                                            "yearly_net_operator"  => "$".number_format($yearlyNetOperator,2),
                                             "cap_rate"  => $cap_rate,
-                                            "total_cash_flow_monthly"  => number_format($total_cash_flow_monthly,2),
-                                            "total_cash_flow_yearly"  => number_format($total_cash_flow_yearly,2),
+                                            "total_cash_flow_monthly"  => "$".number_format($total_cash_flow_monthly,2),
+                                            "total_cash_flow_yearly"  => "$".number_format($total_cash_flow_yearly,2),
                                             "cash_on_cash_return"  => number_format($cash_on_cash_return,2)
                                           ];
 
@@ -293,7 +293,7 @@ class PropertyController extends Controller{
                 //                     []
                 //                 );
 
-                $resData["plan"] = $userSubData->plan_name;
+                $resData["plan"] = ucfirst($userSubData->plan_name);
                 $resData["plan_start"] = date('jS M Y', strtotime($userSubData->plan_start));
                 $resData["plan_end"] = date('jS M Y', strtotime($userSubData->plan_end));
                 $resData["is_cancelled"] = $userSubData->is_cancelled;
@@ -340,7 +340,7 @@ class PropertyController extends Controller{
                             []
                         );
                 }
-                $result = $userSubData->update(['is_cancelled' => 1]);
+                $result = $userSubData->update(['is_cancelled' => 1, 'subscription_id' => null]);
             }
             return response()->json([
                 'status' => 'success',

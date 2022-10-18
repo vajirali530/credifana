@@ -177,7 +177,7 @@ class BillingController extends Controller{
                                     $subscription_id,
                                     []
                                 );
-                    RealtorSubscription::where('subscription_id',$subscription_id)->update(['is_cancelled' => 1]);
+                    RealtorSubscription::where('subscription_id',$subscription_id)->update(['is_cancelled' => 1, 'subscription_id' => null]);
                 }
             }
 
